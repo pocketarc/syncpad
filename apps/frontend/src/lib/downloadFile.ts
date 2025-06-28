@@ -2,7 +2,14 @@ import type { FileMessagePayload } from "@/lib/types";
 
 export function downloadFile(payload: FileMessagePayload) {
     try {
-        const byteCharacters = atob(payload.data.split(",")[1]);
+        const splitBase64 = payload.data.split(",");
+
+        if (typeof splitBase64[1] !== "string") {
+            console.error("Invalid base64 data format:", payload.data);
+            return;
+        }
+
+        const byteCharacters = atob(splitBase64[1]);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
             byteNumbers[i] = byteCharacters.charCodeAt(i);

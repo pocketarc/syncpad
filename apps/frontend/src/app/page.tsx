@@ -5,10 +5,10 @@ import { useCallback, useEffect, useState } from "react";
 import { FileDropZone } from "@/components/FileDropZone";
 import { ScratchpadInput } from "@/components/ScratchpadInput";
 import { StatusBar } from "@/components/StatusBar";
+import { useHostname } from "@/hooks/useHostname";
 import { useScratchpadSocket } from "@/hooks/useScratchpadSocket";
 import { downloadFile } from "@/lib/downloadFile";
 import type { TextMessage } from "@/lib/types";
-import { useHostname } from "@/hooks/useHostname";
 
 // biome-ignore lint/style/noDefaultExport: Next.js requires a default export for pages.
 export default function Page() {

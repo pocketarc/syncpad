@@ -1,0 +1,10 @@
+{
+    "name": "SyncPad Test File",
+    "type": "JSON",
+    "purpose": "Testing file upload functionality",
+    "data": {
+        "timestamp": "2025-06-28",
+        "test": true,
+        "items": [1, 2, 3, 4, 5]
+    }
+}

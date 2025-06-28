@@ -7,7 +7,13 @@
         "dev": "next dev --turbopack -p 3050",
         "build": "next build",
         "start": "next start -p 3050",
-        "lint": "next lint"
+        "lint": "tsc --noEmit && biome check --write && next lint",
+        "test": "playwright test",
+        "test:ui": "playwright test --ui",
+        "test:debug": "playwright test --debug",
+        "test:mobile": "playwright test --grep @mobile",
+        "test:video": "playwright test --project=chromium-video --config=playwright.video.config.ts",
+        "test:headed": "playwright test --headed"
     },
     "dependencies": {
         "react": "^19.0.0",
@@ -15,11 +21,12 @@
         "next": "15.3.4"
     },
     "devDependencies": {
-        "typescript": "^5",
+        "@playwright/test": "^1.53.1",
+        "@tailwindcss/postcss": "^4",
         "@types/node": "^20",
         "@types/react": "^19",
         "@types/react-dom": "^19",
-        "@tailwindcss/postcss": "^4",
-        "tailwindcss": "^4"
+        "tailwindcss": "^4",
+        "typescript": "^5"
     }
 }

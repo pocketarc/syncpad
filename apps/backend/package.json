@@ -4,7 +4,8 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "dev": "bun --watch run src/index.ts"
+        "dev": "bun --watch run src/index.ts",
+        "lint": "tsc --noEmit && biome check --write"
     },
     "dependencies": {
         "dotenv": "^17.0.0"

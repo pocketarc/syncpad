@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { WebSocketMessage } from "@/lib/types";
 
 type ConnectionStatus = "Connecting" | "Connected" | "Disconnected" | "Error";

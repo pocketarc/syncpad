@@ -1,0 +1,5 @@
+This is a test file for Playwright file upload tests.
+It contains some sample text content that can be used to verify file synchronization functionality.
+
+File created at: 2025-06-28
+Purpose: Testing SyncPad file upload and sync features

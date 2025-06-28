@@ -3,9 +3,13 @@
   <p>The zero-friction cross-device clipboard.</p>
 </div>
 
-A lightweight, browser-based scratchpad that instantly syncs text & files between your devices. Built with Bun + Next.js.
+@todo: add logo image
+@todo fix badge links
 
+[![CI](https://github.com/pocketarc/syncpad/actions/workflows/ci.yml/badge.svg)](https://github.com/pocketarc/syncpad/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-AGPLv3-blue.svg)](LICENSE)
+
+A lightweight, browser-based scratchpad that instantly syncs text & files between your devices. Built with Bun + Next.js.
 
 ## 🤔 What does SyncPad solve?
 
@@ -56,8 +60,14 @@ turbo dev
 ```
 
 The app will be available at:
-- Frontend: `http://localhost:3000`
-- WebSocket Server: `ws://localhost:3001`
+- Frontend: `http://localhost:3050`
+- WebSocket Server: `ws://localhost:8080`
+
+## 🧪 Testing
+
+This project uses [Playwright](https://playwright.dev/) for comprehensive end-to-end testing, covering multi-client synchronization, file uploads, and mobile interactions.
+
+The test runner is configured to automatically start the frontend and backend servers, so you can run tests directly without needing `turbo dev` running in a separate terminal.
 
 ## 🏗 Architecture
 
