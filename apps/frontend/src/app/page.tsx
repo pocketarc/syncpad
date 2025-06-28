@@ -1,14 +1,14 @@
 "use client";
 
+import Image from "next/image";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
-import Image from "next/image";
 import { FileDropZone } from "@/components/FileDropZone";
 import { ScratchpadInput } from "@/components/ScratchpadInput";
 import { StatusBar } from "@/components/StatusBar";
+import { useDarkMode } from "@/hooks/useDarkMode";
 import { useHostname } from "@/hooks/useHostname";
 import { useScratchpadSocket } from "@/hooks/useScratchpadSocket";
-import { useDarkMode } from "@/hooks/useDarkMode";
 import { downloadFile } from "@/lib/downloadFile";
 import type { TextMessage } from "@/lib/types";
 
@@ -73,10 +73,13 @@ export default function Page() {
                         <Image src="/logo.png" alt="SyncPad Logo" width={48} height={48} className="drop-shadow-sm" />
                         <div>
                             <h1 className="text-3xl font-bold text-orange-800 dark:text-orange-300">SyncPad</h1>
-                            <p className="text-sm text-orange-600 dark:text-orange-400">Instant cross-device synchronization</p>
+                            <p className="text-sm text-orange-600 dark:text-orange-400">
+                                Instant cross-device synchronization
+                            </p>
                         </div>
                     </div>
                     <button
+                        type="button"
                         onClick={toggleDarkMode}
                         className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-orange-200 dark:border-gray-600 hover:bg-orange-50 dark:hover:bg-gray-700 transition-colors duration-200"
                         aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}

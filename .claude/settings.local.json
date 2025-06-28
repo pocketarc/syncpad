@@ -1,6 +1,12 @@
 {
-    "permissions": {
-        "allow": ["Bash(bunx playwright:*)", "Bash(bun --cwd apps/frontend test*)"],
-        "deny": []
-    }
+  "permissions": {
+    "allow": [
+      "Bash(bunx playwright:*)",
+      "Bash(bun --cwd apps/frontend test*)",
+      "Bash(bun --cwd apps/frontend test dark-mode.spec.ts)",
+      "WebFetch(domain:tailwindcss.com)",
+      "Bash(bun --cwd apps/frontend lint)"
+    ],
+    "deny": []
+  }
 }

@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Configure dark mode for Tailwind 4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
     --background: #ffffff;
     --foreground: #171717;
@@ -28,5 +31,7 @@ body {
     background: var(--background);
     color: var(--foreground);
     font-family: var(--font-geist-sans);
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
 }

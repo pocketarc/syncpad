@@ -67,7 +67,9 @@ export function FileDropZone({ onFileDrop, children, disabled = false }: FileDro
                 disabled={disabled}
             />
             {children}
-            <div className={`text-center mt-2 transition-colors duration-200 ${disabled ? "text-orange-300 dark:text-gray-500" : "text-orange-500 dark:text-orange-400"}`}>
+            <div
+                className={`text-center mt-2 transition-colors duration-200 ${disabled ? "text-orange-300 dark:text-gray-500" : "text-orange-500 dark:text-orange-400"}`}
+            >
                 {disabled
                     ? "File uploads disabled while connecting..."
                     : "📁 Tap to select files or drag & drop to sync instantly"}
