@@ -1,6 +1,7 @@
 export type TextMessage = {
     type: "text";
     payload: string;
+    messageId?: string;
 };
 
 export type FileMessagePayload = {
@@ -12,6 +13,7 @@ export type FileMessagePayload = {
 export type FileMessage = {
     type: "file";
     payload: FileMessagePayload;
+    messageId?: string;
 };
 
 export type PingMessage = {

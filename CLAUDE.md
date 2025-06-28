@@ -71,7 +71,7 @@ This contains the Next.js client application.
 -   `src/components/`: Reusable, "dumb" React components focused on presentation.
     -   `FileDropZone.tsx`: A wrapper component that handles both drag-and-drop events and click-to-upload functionality.
     -   `ScratchpadInput.tsx`: The main `<textarea>` for text entry.
-    -   `StatusBar.tsx`: A simple component to display the WebSocket connection status, including a `data-testid` for testing.
+    -   `StatusBar.tsx`: A simple component to display the WebSocket connection status, including a `data-testid="status-bar"` for testing.
 -   `src/hooks/`: Reusable logic encapsulated in custom React hooks.
     -   `useHostname.ts`: A client-side hook to safely get the `window.location.hostname` for constructing the WebSocket URL. This is critical for making the app work on any network without hardcoding `localhost`.
     -   `useScratchpadSocket.ts`: **The most important frontend hook.** It manages the entire WebSocket lifecycle: connection, event listeners (`onopen`, `onmessage`, etc.), state management (`status`, `lastMessage`), and provides a `sendMessage` function.
@@ -140,46 +140,16 @@ The core of the synchronization logic relies on Bun's built-in pub/sub capabilit
 
 ## 6. Local Development & Testing
 
-### 6.1. Development
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/your-org/syncpad.git
-    cd syncpad
-    ```
-2.  **Install Dependencies:** Run from the root of the project.
-    ```bash
-    bun install
-    ```
-3.  **Configure Environment:**
-    -   In `apps/backend/`, copy `.env.example` to `.env`.
-    -   In `apps/frontend/`, copy `.env.example` to `.env`.
-4.  **Run the Application:** Use the Turbo `dev` script from the root.
-    ```bash
-    turbo dev
-    ```
-    This will concurrently start:
-    -   Backend server: `ws://localhost:8080`
-    -   Frontend server: `http://localhost:3050`
-
-### 6.2. Testing
+### 6.1. Testing
 
 The Playwright test suite is configured to automatically launch the necessary `webServer` instances. You do not need to have `turbo dev` running to execute the tests.
 
--   **Run all tests headlessly (for CI):**
+-   **Run all tests headlessly:**
     ```bash
     bun --cwd apps/frontend test
     ```
--   **Run tests with the interactive UI for debugging:**
-    ```bash
-    bun --cwd apps/frontend test:ui
-    ```
--   **Run tests in a visible browser window:**
-    ```bash
-    bun --cwd apps/frontend test:headed
-    ```
 
-### 6.3. Test-Driven Development Guidelines
+### 6.2. Test-Driven Development Guidelines
 
 **IMPORTANT:** When implementing new features or fixing bugs, always follow this test-first approach:
 
@@ -208,6 +178,17 @@ bun --cwd apps/frontend test new-feature.spec.ts
 # 5. Run all tests to ensure no regressions
 bun --cwd apps/frontend test
 ```
+
+### 6.3. Development Checklist
+
+To consider a task complete, ensure the following:
+
+-   [ ] **Code is written**: Implement the feature or fix.
+-   [ ] **Tests are written**: Create Playwright tests that cover the new functionality.
+-   [ ] **Tests pass**: Run the test suite to ensure all tests are passing.
+-   [ ] **Code is linted**: Run `bun lint` to check for any linting issues.
+-   [ ] **CLAUDE.md is updated**: Review this document and update it with any relevant changes or new concepts introduced.
+-   [ ] **Write up a git commit message**: Clearly describe what was done, why, and any relevant context. No need to actually commit, just tell us what you would write.
 
 ## 7. Configuration (Environment Variables)
 

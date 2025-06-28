@@ -7,7 +7,7 @@ const PING_INTERVAL = 30000; // 30 seconds
 const PONG_TIMEOUT = 5000; // 5 seconds to wait for pong
 const RECONNECT_DELAY_BASE = 1000; // Base delay for exponential backoff
 const MAX_RECONNECT_DELAY = 30000; // Maximum delay between reconnection attempts
-const MAX_RECONNECT_ATTEMPTS = Infinity; // Reconnect infinitely
+const MAX_RECONNECT_ATTEMPTS = Number.POSITIVE_INFINITY; // Reconnect infinitely
 
 export function useScratchpadSocket(url: string | null) {
     const [status, setStatus] = useState<ConnectionStatus>("Connecting");
@@ -18,6 +18,7 @@ export function useScratchpadSocket(url: string | null) {
     const reconnectTimeout = useRef<NodeJS.Timeout | null>(null);
     const reconnectAttempts = useRef(0);
     const shouldReconnect = useRef(true);
+    const sentMessageIds = useRef<Set<string>>(new Set());
 
     const clearTimers = useCallback(() => {
         if (pingInterval.current) {
@@ -37,7 +38,7 @@ export function useScratchpadSocket(url: string | null) {
     const sendPing = useCallback(() => {
         if (ws.current?.readyState === WebSocket.OPEN) {
             ws.current.send(JSON.stringify({ type: "ping", payload: null }));
-            
+
             // Set timeout to wait for pong
             pongTimeout.current = setTimeout(() => {
                 console.log("Pong timeout - connection appears dead, closing socket");
@@ -73,14 +74,11 @@ export function useScratchpadSocket(url: string | null) {
         socket.onclose = (event) => {
             console.log("WebSocket closed", { code: event.code, reason: event.reason });
             clearTimers();
-            
+
             if (shouldReconnect.current && reconnectAttempts.current < MAX_RECONNECT_ATTEMPTS) {
                 setStatus("Reconnecting");
-                const delay = Math.min(
-                    RECONNECT_DELAY_BASE * Math.pow(2, reconnectAttempts.current),
-                    MAX_RECONNECT_DELAY
-                );
-                
+                const delay = Math.min(RECONNECT_DELAY_BASE * 2 ** reconnectAttempts.current, MAX_RECONNECT_DELAY);
+
                 console.log(`Reconnecting in ${delay}ms...`);
                 reconnectTimeout.current = setTimeout(() => {
                     reconnectAttempts.current++;
@@ -99,7 +97,7 @@ export function useScratchpadSocket(url: string | null) {
         socket.onmessage = (event) => {
             try {
                 const message: WebSocketMessage = JSON.parse(event.data);
-                
+
                 // Handle pong response
                 if (message.type === "pong") {
                     if (pongTimeout.current) {
@@ -108,7 +106,7 @@ export function useScratchpadSocket(url: string | null) {
                     }
                     return;
                 }
-                
+
                 // Handle ping (respond with pong)
                 if (message.type === "ping") {
                     if (socket.readyState === WebSocket.OPEN) {
@@ -116,8 +114,13 @@ export function useScratchpadSocket(url: string | null) {
                     }
                     return;
                 }
-                
-                // Handle other message types
+
+                // Handle other message types - ignore messages we sent ourselves.
+                if (message.messageId && sentMessageIds.current.has(message.messageId)) {
+                    // This is a message we sent, ignore it.
+                    return;
+                }
+
                 setLastMessage(message);
             } catch (error) {
                 console.error("Failed to parse incoming message:", error);
@@ -139,11 +142,28 @@ export function useScratchpadSocket(url: string | null) {
                 ws.current = null;
             }
         };
-    }, [url, connect, clearTimers]);
+    }, [connect, clearTimers]);
 
     const sendMessage = useCallback((message: WebSocketMessage) => {
         if (ws.current?.readyState === WebSocket.OPEN) {
-            ws.current.send(JSON.stringify(message));
+            // Generate a unique message ID and track it.
+            const messageId = crypto.randomUUID();
+            const messageWithId = {
+                ...message,
+                messageId,
+            };
+
+            // Track this message ID so we can ignore it when it comes back.
+            sentMessageIds.current.add(messageId);
+
+            // Clean up old message IDs to prevent memory leaks.
+            if (sentMessageIds.current.size > 100) {
+                const ids = Array.from(sentMessageIds.current);
+                sentMessageIds.current.clear();
+                ids.slice(-50).forEach((id) => sentMessageIds.current.add(id));
+            }
+
+            ws.current.send(JSON.stringify(messageWithId));
         } else {
             console.error("WebSocket is not connected. Current state:", ws.current?.readyState);
         }
