@@ -7,15 +7,26 @@ interface ScratchpadInputProps {
 }
 
 export function ScratchpadInput({ value, onChange, disabled = false }: ScratchpadInputProps) {
+    const handleClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
+        e.stopPropagation();
+    };
+
     return (
         <textarea
             value={value}
             onChange={onChange}
+            onClick={handleClick}
             disabled={disabled}
-            className={`w-full h-80 p-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono ${
-                disabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""
+            className={`w-full h-80 p-4 border rounded-lg focus:outline-none focus:ring-2 font-mono transition-colors duration-200 ${
+                disabled 
+                    ? "bg-orange-50 dark:bg-gray-800 text-orange-400 dark:text-gray-500 cursor-not-allowed border-orange-200 dark:border-gray-600" 
+                    : "bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 border-orange-200 dark:border-gray-600 focus:ring-orange-400 dark:focus:ring-orange-500 focus:border-orange-400 dark:focus:border-orange-500"
             }`}
-            placeholder={disabled ? "Connecting to server..." : "Paste stuff here or drop files in the box..."}
+            placeholder={
+                disabled
+                    ? "Connecting to server..."
+                    : "Start typing here... Everything syncs instantly across your devices ∞"
+            }
         />
     );
 }
