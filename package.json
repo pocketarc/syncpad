@@ -1,0 +1,30 @@
+{
+    "name": "syncpad",
+    "version": "1.0.0",
+    "private": true,
+    "license": "proprietary",
+    "workspaces": ["apps/*", "packages/*"],
+    "type": "module",
+    "scripts": {
+        "dev": "turbo run dev",
+        "build": "turbo run build",
+        "test": "turbo run test",
+        "lint": "turbo run lint",
+        "clean": "turbo run clean",
+        "outdated": "bun outdated && turbo run outdated",
+        "update": "bun update && turbo run update"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "^2.0.6",
+        "tsx": "^4.20.3",
+        "turbo": "^2.5.4",
+        "typescript": "^5.8.3"
+    },
+    "packageManager": "bun@1.1.38",
+    "engines": {
+        "node": ">=22.0.0"
+    },
+    "dependencies": {
+        "@types/bun": "^1.2.17"
+    }
+}

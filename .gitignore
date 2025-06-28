@@ -1,0 +1,4 @@
+node_modules
+.turbo
+recordings/
+!recordings/.gitignore
