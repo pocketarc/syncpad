@@ -17,6 +17,7 @@ export default function Page() {
 
     const [text, setText] = useState("");
     const { status, lastMessage, sendMessage } = useScratchpadSocket(hostname ? `ws://${hostname}:${port}` : null);
+    const isConnected = status === "Connected";
 
     // Effect to handle incoming messages from the WebSocket.
     useEffect(() => {
@@ -67,8 +68,8 @@ export default function Page() {
                 <h1 className="text-2xl font-bold mb-2">Synced Scratchpad</h1>
                 <StatusBar status={status} />
 
-                <FileDropZone onFileDrop={handleFileDrop}>
-                    <ScratchpadInput value={text} onChange={handleTextChange} />
+                <FileDropZone onFileDrop={handleFileDrop} disabled={!isConnected}>
+                    <ScratchpadInput value={text} onChange={handleTextChange} disabled={!isConnected} />
                 </FileDropZone>
             </div>
         </main>

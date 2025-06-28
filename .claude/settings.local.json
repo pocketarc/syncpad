@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(bunx playwright:*)",
-      "Bash(bun --cwd apps/frontend test auto-reconnection.spec.ts)"
+      "Bash(bun --cwd apps/frontend test auto-reconnection.spec.ts)",
+      "Bash(bun --cwd apps/frontend test disabled-input.spec.ts)",
+      "Bash(bun --cwd apps/frontend test --project=chromium)"
     ],
     "deny": []
   }

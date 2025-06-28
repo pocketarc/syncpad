@@ -83,6 +83,7 @@ This contains the Next.js client application.
     -   `file-upload.spec.ts`: Tests file upload functionality via both click/select and drag-and-drop.
     -   `multi-client-sync.spec.ts`: The most critical test suite, ensuring that actions in one client (text or file updates) are correctly reflected in other connected clients.
     -   `mobile-upload.spec.ts`: Tests behavior on mobile viewports.
+    -   `disabled-input.spec.ts`: Ensures the input is disabled when not connected to the WebSocket server.
 -   `playwright.config.ts`: The main Playwright configuration, which defines projects for different browsers and includes the crucial `webServer` option to automatically launch the dev environment for testing.
 
 ## 5. Core Concepts & Data Flow
