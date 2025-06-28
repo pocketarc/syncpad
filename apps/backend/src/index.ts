@@ -42,13 +42,31 @@ const server = Bun.serve({
         },
 
         // This handler is called when a client sends a message.
-        message(_ws, message) {
+        message(ws, message) {
             console.log(`Received message: ${message.toString().substring(0, 50)}...`);
-            // We publish the received message to all clients subscribed to the topic.
-            // This is the core of the sync functionality.
-            // `server.publish` sends to ALL subscribers. `ws.publish` sends to all EXCEPT the sender.
-            // We use `server.publish` to ensure the message is broadcast to everyone.
-            server.publish(scratchpadTopic, message);
+
+            try {
+                const parsedMessage = JSON.parse(message.toString());
+
+                // Handle ping/pong for connection liveness detection.
+                if (parsedMessage.type === "ping") {
+                    // Respond directly to the sender with pong.
+                    ws.send(JSON.stringify({ type: "pong", payload: null }));
+                    return;
+                }
+
+                // For pong messages, we don't need to do anything special.
+                if (parsedMessage.type === "pong") {
+                    return;
+                }
+
+                // For all other message types (text, file), broadcast to all clients.
+                server.publish(scratchpadTopic, message);
+            } catch (error) {
+                console.error("Failed to parse message:", error);
+                // If parsing fails, still broadcast the raw message for backward compatibility.
+                server.publish(scratchpadTopic, message);
+            }
         },
 
         // This handler is called when a client disconnects.

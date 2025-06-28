@@ -178,6 +178,36 @@ The Playwright test suite is configured to automatically launch the necessary `w
     bun --cwd apps/frontend test:headed
     ```
 
+### 6.3. Test-Driven Development Guidelines
+
+**IMPORTANT:** When implementing new features or fixing bugs, always follow this test-first approach:
+
+1. **Write tests before implementation:** Create Playwright tests that describe the expected behavior before writing the actual code.
+2. **Run tests to confirm they fail:** Ensure your new tests fail initially, proving they actually test the functionality.
+3. **Implement the feature/fix:** Write the minimal code needed to make the tests pass.
+4. **Run tests to confirm they pass:** Verify that your implementation works by running the tests and ensuring they all pass.
+5. **Refactor if needed:** Clean up the code while keeping tests green.
+
+This approach ensures:
+- All new functionality is properly tested
+- Tests actually validate the intended behavior
+- Regressions are caught early
+- Code quality remains high
+
+Example workflow:
+```bash
+# 1. Write your test in tests/new-feature.spec.ts
+# 2. Run the test to see it fail
+bun --cwd apps/frontend test new-feature.spec.ts
+
+# 3. Implement the feature
+# 4. Run the test again to see it pass
+bun --cwd apps/frontend test new-feature.spec.ts
+
+# 5. Run all tests to ensure no regressions
+bun --cwd apps/frontend test
+```
+
 ## 7. Configuration (Environment Variables)
 
 | Variable | Workspace | Purpose | Default |

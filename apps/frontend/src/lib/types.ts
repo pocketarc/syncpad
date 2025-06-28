@@ -14,4 +14,14 @@ export type FileMessage = {
     payload: FileMessagePayload;
 };
 
-export type WebSocketMessage = TextMessage | FileMessage;
+export type PingMessage = {
+    type: "ping";
+    payload: null;
+};
+
+export type PongMessage = {
+    type: "pong";
+    payload: null;
+};
+
+export type WebSocketMessage = TextMessage | FileMessage | PingMessage | PongMessage;
