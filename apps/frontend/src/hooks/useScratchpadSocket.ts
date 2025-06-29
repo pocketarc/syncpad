@@ -147,7 +147,7 @@ export function useScratchpadSocket(url: string | null) {
     const sendMessage = useCallback((message: WebSocketMessage) => {
         if (ws.current?.readyState === WebSocket.OPEN) {
             // Generate a unique message ID and track it.
-            const messageId = crypto.randomUUID();
+            const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
             const messageWithId = {
                 ...message,
                 messageId,

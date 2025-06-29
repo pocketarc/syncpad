@@ -13,7 +13,9 @@
       "Bash(find:*)",
       "Bash(rg:*)",
       "Bash(bun lint:*)",
-      "Bash(bun add:*)"
+      "Bash(bun add:*)",
+      "Bash(bun test:*)",
+      "Bash(bun run test:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
