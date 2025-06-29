@@ -14,12 +14,12 @@ test.describe("Multi-Client File Sync", () => {
         const page2 = await context2.newPage();
 
         // Navigate both pages to the app
-        await Promise.all([page1.goto("/"), page2.goto("/")]);
+        await Promise.all([page1.goto("/test-blue-cat-moon"), page2.goto("/test-blue-cat-moon")]);
 
         // Wait for both pages to be connected
         await Promise.all([
-            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Connected"),
-            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Connected"),
+            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
+            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
         ]);
 
         // Set up download handler for page2 before triggering upload on page1
@@ -50,12 +50,12 @@ test.describe("Multi-Client File Sync", () => {
         const page1 = await context1.newPage();
         const page2 = await context2.newPage();
 
-        await Promise.all([page1.goto("/"), page2.goto("/")]);
+        await Promise.all([page1.goto("/test-blue-cat-moon"), page2.goto("/test-blue-cat-moon")]);
 
         // Wait for connections
         await Promise.all([
-            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Connected"),
-            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Connected"),
+            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
+            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
         ]);
 
         // First sync some text
@@ -87,11 +87,11 @@ test.describe("Multi-Client File Sync", () => {
         const page1 = await context1.newPage();
         const page2 = await context2.newPage();
 
-        await Promise.all([page1.goto("/"), page2.goto("/")]);
+        await Promise.all([page1.goto("/test-blue-cat-moon"), page2.goto("/test-blue-cat-moon")]);
 
         await Promise.all([
-            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Connected"),
-            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Connected"),
+            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
+            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
         ]);
 
         // Upload files one at a time to avoid race conditions
@@ -131,11 +131,11 @@ test.describe("Multi-Client File Sync", () => {
         const page1 = await context1.newPage();
         const page2 = await context2.newPage();
 
-        await Promise.all([page1.goto("/"), page2.goto("/")]);
+        await Promise.all([page1.goto("/test-blue-cat-moon"), page2.goto("/test-blue-cat-moon")]);
 
         await Promise.all([
-            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Connected"),
-            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Connected"),
+            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
+            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
         ]);
 
         // Upload files rapidly
@@ -172,13 +172,17 @@ test.describe("Multi-Client File Sync", () => {
         const page2 = await context2.newPage();
         const page3 = await context3.newPage();
 
-        await Promise.all([page1.goto("/"), page2.goto("/"), page3.goto("/")]);
+        await Promise.all([
+            page1.goto("/test-blue-cat-moon"),
+            page2.goto("/test-blue-cat-moon"),
+            page3.goto("/test-blue-cat-moon"),
+        ]);
 
         // Wait for all connections
         await Promise.all([
-            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Connected"),
-            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Connected"),
-            expect(page3.locator('[data-testid="status-bar"]')).toContainText("Connected"),
+            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
+            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
+            expect(page3.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
         ]);
 
         // Set up download handlers for page2 and page3

@@ -2,15 +2,20 @@
   "permissions": {
     "allow": [
       "Bash(bunx playwright:*)",
-      "Bash(bun --cwd apps/frontend test*)",
-      "Bash(bun --cwd apps/frontend test dark-mode.spec.ts)",
+      "Bash(bun --cwd apps/frontend test:*)",
       "WebFetch(domain:tailwindcss.com)",
       "Bash(bun --cwd apps/frontend lint)",
       "Bash(chmod:*)",
       "Bash(timeout:*)",
       "Bash(true)",
-      "Bash(bun run lint:*)"
+      "Bash(bun run lint:*)",
+      "Bash(mkdir:*)",
+      "Bash(find:*)",
+      "Bash(rg:*)",
+      "Bash(bun lint:*)",
+      "Bash(bun add:*)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }

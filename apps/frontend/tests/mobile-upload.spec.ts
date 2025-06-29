@@ -6,9 +6,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 test.describe("Mobile File Upload", () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto("/");
+        await page.goto("/test-blue-cat-moon");
         // Wait for WebSocket connection
-        await expect(page.locator('[data-testid="status-bar"]')).toContainText("Connected");
+        await expect(page.locator('[data-testid="status-bar"]')).toContainText("Live sync active");
     });
 
     test("should upload file via tap on mobile @mobile", async ({ page, isMobile }) => {

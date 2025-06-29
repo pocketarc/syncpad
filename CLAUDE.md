@@ -6,6 +6,8 @@
 
 SyncPad is a zero-friction, browser-based scratchpad for instant text and file synchronization across devices. It solves the common problem of needing to quickly transfer small pieces of information (code snippets, URLs, temporary files) between machines (e.g., a work laptop and a personal laptop) without the overhead of dedicated apps, cloud storage, or messaging yourself.
 
+Each SyncPad session is isolated in its own **room** with a unique, shareable URL. When you visit the root URL, you're automatically redirected to a new room with a memorable ID (e.g., `brave-coral-eagle-castle`). You can share this room URL with others to collaborate in real-time.
+
 ### 1.2. Guiding Philosophy
 
 The project is built on three core principles:
@@ -40,8 +42,8 @@ SyncPad employs a simple client-server architecture composed of two primary serv
 +--------------------------------+
 ```
 
--   **Backend (`apps/backend`):** A minimalist WebSocket server built with Bun. Its sole responsibility is to manage WebSocket connections and broadcast messages to clients subscribed to a specific topic.
--   **Frontend (`apps/frontend`):** A Next.js client application that provides the user interface. It establishes a persistent WebSocket connection to the backend to send and receive updates.
+-   **Backend (`apps/backend`):** A minimalist WebSocket server built with Bun. It manages WebSocket connections and broadcasts messages to clients subscribed to room-specific topics. Each room is isolated using separate pub/sub topics.
+-   **Frontend (`apps/frontend`):** A Next.js client application that provides the user interface. It establishes a persistent WebSocket connection to the backend using the room ID in the URL path to join the appropriate room.
 
 ## 3. Technology Stack
 
@@ -67,7 +69,8 @@ This contains the Next.js client application.
 
 -   `src/app/`: The core application code following the Next.js App Router paradigm.
     -   `layout.tsx`: The root layout, setting up fonts and global styles.
-    -   `page.tsx`: The main page component. It's a client component (`"use client"`) that orchestrates the UI and state management.
+    -   `page.tsx`: The root page that automatically redirects to a new room with a generated room ID.
+    -   `[roomId]/page.tsx`: The main room page component that handles the SyncPad interface for a specific room.
 -   `src/components/`: Reusable, "dumb" React components focused on presentation.
     -   `FileDropZone.tsx`: A wrapper component that handles both drag-and-drop events and click-to-upload functionality.
     -   `ScratchpadInput.tsx`: The main `<textarea>` for text entry.
@@ -78,12 +81,14 @@ This contains the Next.js client application.
 -   `src/lib/`: Shared utilities and type definitions.
     -   `types.ts`: Defines the TypeScript types for the WebSocket message protocol. **This is the contract between the frontend and backend.**
     -   `downloadFile.ts`: A utility function that takes a file payload and triggers a browser download, which is the mechanism for receiving files.
+    -   `roomId.ts`: Utilities for generating and validating memorable room IDs using word combinations (e.g., "brave-coral-eagle-castle").
 -   `tests/`: Contains all Playwright end-to-end tests.
     -   `text-sync.spec.ts`: Validates real-time text synchronization between multiple clients.
     -   `file-upload.spec.ts`: Tests file upload functionality via both click/select and drag-and-drop.
     -   `multi-client-sync.spec.ts`: The most critical test suite, ensuring that actions in one client (text or file updates) are correctly reflected in other connected clients.
     -   `mobile-upload.spec.ts`: Tests behavior on mobile viewports.
     -   `disabled-input.spec.ts`: Ensures the input is disabled when not connected to the WebSocket server.
+    -   `room-functionality.spec.ts`: Tests room isolation, sharing, and routing functionality.
 -   `playwright.config.ts`: The main Playwright configuration, which defines projects for different browsers and includes the crucial `webServer` option to automatically launch the dev environment for testing.
 
 ## 5. Core Concepts & Data Flow
@@ -111,34 +116,56 @@ All communication between the client and server uses a simple JSON-based message
     }
     ```
 
-### 5.2. Publish-Subscribe (Pub/Sub) Model
+### 5.2. Room System & Routing
 
-The core of the synchronization logic relies on Bun's built-in pub/sub capabilities.
+SyncPad uses a room-based architecture to isolate different sessions:
 
-1.  **Subscription:** When a client successfully connects (`websocket.open` handler), it is immediately subscribed to a shared topic.
-2.  **Publication:** When the server receives a message from any client (`websocket.message` handler), it simply broadcasts (publishes) that exact message to every client currently subscribed to the topic.
+1.  **Room ID Generation:** Memorable room IDs are generated using 4 random words (adjective-color-animal-noun format) like `brave-coral-eagle-castle`.
+2.  **URL Structure:** Each room has its own URL: `/{room-id}`. Visiting the root `/` automatically redirects to a new room.
+3.  **Room Validation:** The backend validates room IDs to ensure they follow the correct 4-word format before allowing WebSocket connections.
+4.  **WebSocket Connection:** Clients connect to `ws://host:port/{room-id}`, and the backend extracts the room ID from the URL path.
 
-### 5.3. Data Flow: Text Sync
+### 5.3. Publish-Subscribe (Pub/Sub) Model
+
+The core of the synchronization logic relies on Bun's built-in pub/sub capabilities with room isolation:
+
+1.  **Room-Specific Subscription:** When a client connects, it subscribes to a room-specific topic (`room:{room-id}`).
+2.  **Room-Isolated Broadcasting:** Messages are only broadcast to clients within the same room, ensuring complete isolation between different sessions.
+
+### 5.4. Data Flow: Text Sync
 
 1.  **User Action:** A user types in the `<ScratchpadInput>`.
-2.  **React Event & Callback:** The `onChange` event fires `handleTextChange` in `page.tsx`.
+2.  **React Event & Callback:** The `onChange` event fires `handleTextChange` in `[roomId]/page.tsx`.
 3.  **Local State Update:** The callback first calls `setText(newText)` to update the UI of the *current* client instantly for a responsive feel.
 4.  **Send Message:** It then creates a `TextMessage` object and calls the `sendMessage` function from the `useScratchpadSocket` hook.
-5.  **Server Broadcast:** The backend receives the message and publishes it to the `scratchpadTopic`.
-6.  **Remote Client Reception:** All *other* clients receive the message via their `socket.onmessage` handler inside the `useScratchpadSocket` hook.
+5.  **Server Broadcast:** The backend receives the message and publishes it to the room-specific topic (`room:{room-id}`).
+6.  **Remote Client Reception:** All *other* clients in the same room receive the message via their `socket.onmessage` handler inside the `useScratchpadSocket` hook.
 7.  **Hook State Update:** The hook calls `setLastMessage(message)`.
-8.  **Remote UI Update:** The `useEffect` in `page.tsx` on the other clients (which depends on `[lastMessage]`) is triggered. It checks `message.type === 'text'` and calls `setText(message.payload)`, updating their UI to match.
+8.  **Remote UI Update:** The `useEffect` in `[roomId]/page.tsx` on the other clients (which depends on `[lastMessage]`) is triggered. It checks `message.type === 'text'` and calls `setText(message.payload)`, updating their UI to match.
 
-### 5.4. Data Flow: File Sync
+### 5.5. Data Flow: File Sync
 
 1.  **User Action:** A user either drags a file onto the `<FileDropZone>` or clicks it to select a file.
-2.  **File Reading:** The `onFileDrop` event in `page.tsx` uses the `FileReader` API to read the file as a **Base64 data URL**.
+2.  **File Reading:** The `onFileDrop` event in `[roomId]/page.tsx` uses the `FileReader` API to read the file as a **Base64 data URL**.
 3.  **Send Message:** Once the `FileReader` completes, its `onload` callback fires, calling `sendMessage` with a `FileMessage` object containing the file's name, MIME type, and base64 data.
-4.  **Broadcast:** The backend receives and broadcasts the `FileMessage`.
-5.  **Receive Message:** All other clients receive the `FileMessage`. The `useEffect` in `page.tsx` detects the message type.
+4.  **Broadcast:** The backend receives and broadcasts the `FileMessage` to all clients in the room.
+5.  **Receive Message:** All other clients in the same room receive the `FileMessage`. The `useEffect` in `[roomId]/page.tsx` detects the message type.
 6.  **Trigger Download:** It calls the `downloadFile` utility, which decodes the base64 data into a `Blob`, creates an invisible `<a>` tag with a `download` attribute, programmatically clicks it, and removes it from the DOM. This securely triggers a native browser download prompt.
 
-## 6. Local Development & Testing
+### 5.6. Room Usage
+
+***For Users:**
+- Visit the root URL (`/`) to automatically create a new room
+- Share the room URL (e.g., `/brave-coral-eagle-castle`) with others to collaborate
+- Use the "📋 Share Room" button to copy the room URL to clipboard
+- Each room is completely isolated - messages and files only sync within the same room
+
+**For Developers/Testing:**
+- Use fixed room IDs in tests (e.g., `/test-blue-cat-moon`) to ensure clients connect to the same room
+- All existing functionality works the same, just scoped to the specific room
+- Room IDs must follow the 4-word format: `word-word-word-word`
+
+## 6. Local Developme*nt & Testing
 
 ### 6.1. Testing
 
@@ -195,5 +222,4 @@ To consider a task complete, ensure the following:
 | Variable | Workspace | Purpose | Default |
 | :--- | :--- | :--- | :--- |
 | `WEBSOCKET_PORT` | `backend` | The port on which the Bun WebSocket server will listen. | `8080` |
-| `SCRATCHPAD_TOPIC` | `backend` | The internal pub/sub topic name for broadcasting messages. | `shared-scratchpad` |
 | `NEXT_PUBLIC_WEBSOCKET_PORT` | `frontend` | The port the client should connect to. Must match the backend's `WEBSOCKET_PORT`. | `8080` |

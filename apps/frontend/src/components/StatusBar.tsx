@@ -12,7 +12,7 @@ export function StatusBar({ status }: StatusBarProps) {
             case "Disconnected":
                 return "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700";
             default:
-                return "text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-600";
+                return "text-stone-600 dark:text-stone-400 bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-600";
         }
     };
 

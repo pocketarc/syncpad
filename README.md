@@ -9,7 +9,7 @@
 [![CI](https://github.com/pocketarc/syncpad/actions/workflows/ci.yml/badge.svg)](https://github.com/pocketarc/syncpad/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-AGPLv3-blue.svg)](LICENSE)
 
-A lightweight, browser-based scratchpad that instantly syncs text & files between your devices. Built with Bun + Next.js.
+A lightweight, browser-based scratchpad that instantly syncs text & files between your devices. Each session gets its own shareable room with a memorable URL. Built with Bun + Next.js.
 
 ## 🤔 What does SyncPad solve?
 
@@ -25,7 +25,9 @@ Because god damn, not everything needs to be monetized.
 ## ✨ Features
 
 - Zero setup, with no login or configuration required.
-- Real-time synchronization of text and files across all connected devices.
+- Memorable room URLs like `/brave-coral-eagle-castle` that you can share with others.
+- Real-time synchronization of text and files across all connected devices in the same room.
+- Complete room isolation - each session is private and separate from others.
 - Drag and drop support for file sharing.
 - Privacy-focused: Your data is not stored on any server, it stays between your devices.
 
@@ -33,8 +35,9 @@ Because god damn, not everything needs to be monetized.
 
 1. Visit [syncpad.pocketarc.com](https://syncpad.pocketarc.com). (@todo: add link to live demo)
    - Alternatively, you can run it locally (see below).
-2. Open the same URL on your other device.
-3. Start typing or drag files - they'll sync instantly!
+2. You'll be automatically redirected to a new room with a memorable URL.
+3. Share that room URL with others or open it on your other devices.
+4. Start typing or drag files - they'll sync instantly across all devices in the room!
 
 ![SyncPad Demo](demo.gif) (@todo: add demo gif)
 
@@ -76,11 +79,12 @@ SyncPad is built with:
 - [Next.js](https://nextjs.org)
 - [TailwindCSS](https://tailwindcss.com)
 
-The application uses a simple pub/sub model where:
+The application uses a room-based pub/sub model where:
 
-1. Each client connects to the WebSocket server.
-2. Updates are broadcast to all connected clients.
-3. Files are streamed through the WebSocket connection.
+1. Each client connects to the WebSocket server and joins a specific room.
+2. Updates are broadcast only to clients within the same room.
+3. Files are streamed through the WebSocket connection to room participants.
+4. Rooms are completely isolated from each other for privacy.
 
 ## 📝 Contributing
 

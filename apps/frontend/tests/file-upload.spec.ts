@@ -1,14 +1,14 @@
 import { expect, test } from "@playwright/test";
-import path from "path";
-import { fileURLToPath } from "url";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 test.describe("File Upload", () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto("/");
+        await page.goto("/test-blue-cat-moon");
         // Wait for WebSocket connection
-        await expect(page.locator('[data-testid="status-bar"]')).toContainText("Connected");
+        await expect(page.locator('[data-testid="status-bar"]')).toContainText("Live sync active");
     });
 
     test("should upload file via click", async ({ page }) => {
@@ -67,13 +67,13 @@ test.describe("File Upload", () => {
         const dropZone = page.locator('[aria-label="File drop zone"]');
 
         // Check initial state
-        await expect(dropZone).toHaveClass(/border-gray-300/);
+        await expect(dropZone).toHaveClass(/border-stone-300/);
 
         // Hover over the drop zone
         await dropZone.hover();
 
         // Should show hover effect (border color change)
-        await expect(dropZone).toHaveClass(/hover:border-gray-400/);
+        await expect(dropZone).toHaveClass(/hover:border-stone-400/);
     });
 
     test("should have proper accessibility attributes", async ({ page }) => {

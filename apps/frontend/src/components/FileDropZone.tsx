@@ -50,8 +50,8 @@ export function FileDropZone({ onFileDrop, children, disabled = false }: FileDro
         <section
             className={`w-full border-2 border-dashed rounded-lg p-4 transition-colors duration-200 ${
                 disabled
-                    ? "border-orange-200 dark:border-gray-600 bg-orange-50 dark:bg-gray-800 cursor-not-allowed"
-                    : "border-orange-300 dark:border-gray-600 bg-white dark:bg-gray-900 cursor-pointer hover:border-orange-400 dark:hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-gray-800"
+                    ? "border-orange-200 dark:border-stone-600 bg-orange-50 dark:bg-stone-800 cursor-not-allowed"
+                    : "border-orange-300 dark:border-stone-600 bg-white dark:bg-stone-900 cursor-pointer hover:border-orange-400 dark:hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-stone-800"
             }`}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
@@ -68,7 +68,7 @@ export function FileDropZone({ onFileDrop, children, disabled = false }: FileDro
             />
             {children}
             <div
-                className={`text-center mt-2 transition-colors duration-200 ${disabled ? "text-orange-300 dark:text-gray-500" : "text-orange-500 dark:text-orange-400"}`}
+                className={`text-center mt-2 transition-colors duration-200 ${disabled ? "text-orange-300 dark:text-stone-500" : "text-orange-500 dark:text-orange-400"}`}
             >
                 {disabled
                     ? "File uploads disabled while connecting..."

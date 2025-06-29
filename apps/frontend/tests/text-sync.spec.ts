@@ -2,9 +2,9 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Text Synchronization", () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto("/");
+        await page.goto("/test-blue-cat-moon");
         // Wait for WebSocket connection
-        await expect(page.locator('[data-testid="status-bar"]')).toContainText("Connected");
+        await expect(page.locator('[data-testid="status-bar"]')).toContainText("Live sync active");
         // Clear any existing content
         await page.locator("textarea").fill("");
     });
@@ -16,12 +16,12 @@ test.describe("Text Synchronization", () => {
         const page1 = await context1.newPage();
         const page2 = await context2.newPage();
 
-        await Promise.all([page1.goto("/"), page2.goto("/")]);
+        await Promise.all([page1.goto("/test-blue-cat-moon"), page2.goto("/test-blue-cat-moon")]);
 
         // Wait for both pages to be connected
         await Promise.all([
-            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Connected"),
-            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Connected"),
+            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
+            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
         ]);
 
         // Clear any existing content from both clients
@@ -59,13 +59,17 @@ test.describe("Text Synchronization", () => {
         const page2 = await context2.newPage();
         const page3 = await context3.newPage();
 
-        await Promise.all([page1.goto("/"), page2.goto("/"), page3.goto("/")]);
+        await Promise.all([
+            page1.goto("/test-blue-cat-moon"),
+            page2.goto("/test-blue-cat-moon"),
+            page3.goto("/test-blue-cat-moon"),
+        ]);
 
         // Wait for all connections
         await Promise.all([
-            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Connected"),
-            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Connected"),
-            expect(page3.locator('[data-testid="status-bar"]')).toContainText("Connected"),
+            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
+            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
+            expect(page3.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
         ]);
 
         // Clear any existing content from all clients
@@ -110,11 +114,11 @@ test.describe("Text Synchronization", () => {
         const page1 = await context1.newPage();
         const page2 = await context2.newPage();
 
-        await Promise.all([page1.goto("/"), page2.goto("/")]);
+        await Promise.all([page1.goto("/test-blue-cat-moon"), page2.goto("/test-blue-cat-moon")]);
 
         await Promise.all([
-            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Connected"),
-            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Connected"),
+            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
+            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
         ]);
 
         const textarea1 = page1.locator("textarea");

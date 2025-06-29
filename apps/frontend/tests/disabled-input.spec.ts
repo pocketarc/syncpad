@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Disabled Input Functionality", () => {
     test("inputs should be disabled initially while connecting", async ({ page }) => {
-        await page.goto("http://localhost:3050");
+        await page.goto("http://localhost:3050/test-blue-cat-moon");
 
         // Immediately check if inputs are disabled during the initial connection phase
         const textarea = page.locator("textarea");
@@ -14,7 +14,7 @@ test.describe("Disabled Input Functionality", () => {
         // Check the initial state - should show "Connecting" or another non-"Connected" state
         const initialStatus = await statusBar.textContent();
 
-        if (initialStatus && !initialStatus.includes("Connected")) {
+        if (initialStatus && !initialStatus.includes("Live sync active")) {
             // If we catch it in a non-connected state, verify inputs are disabled
             await expect(textarea).toBeDisabled();
             await expect(textarea).toHaveAttribute("placeholder", "Connecting to server...");
@@ -27,7 +27,7 @@ test.describe("Disabled Input Functionality", () => {
         }
 
         // Then wait for successful connection and verify inputs are enabled
-        await page.waitForSelector('[data-testid="status-bar"]:has-text("Connected")', { timeout: 10000 });
+        await page.waitForSelector('[data-testid="status-bar"]:has-text("Live sync active")', { timeout: 10000 });
 
         await expect(textarea).not.toBeDisabled();
         await expect(textarea).toHaveAttribute("placeholder", "Paste stuff here or drop files in the box...");
@@ -40,10 +40,10 @@ test.describe("Disabled Input Functionality", () => {
     });
 
     test("inputs are properly enabled when connected", async ({ page }) => {
-        await page.goto("http://localhost:3050");
+        await page.goto("http://localhost:3050/test-blue-cat-moon");
 
         // Wait for successful connection
-        await page.waitForSelector('[data-testid="status-bar"]:has-text("Connected")', { timeout: 10000 });
+        await page.waitForSelector('[data-testid="status-bar"]:has-text("Live sync active")', { timeout: 10000 });
 
         // Verify all inputs are enabled
         const textarea = page.locator("textarea");
@@ -54,7 +54,7 @@ test.describe("Disabled Input Functionality", () => {
         await expect(fileInput).not.toBeDisabled();
 
         // Verify styling is correct for enabled state
-        await expect(textarea).not.toHaveClass(/bg-gray-100/);
+        await expect(textarea).not.toHaveClass(/bg-stone-100/);
         await expect(textarea).not.toHaveClass(/cursor-not-allowed/);
 
         const dropZone = page.locator('[aria-label="File drop zone"]');

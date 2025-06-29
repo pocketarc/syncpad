@@ -3,10 +3,10 @@ import { expect, test } from "@playwright/test";
 test.describe("Auto-reconnection functionality", () => {
     test("should show connecting status initially and then connected", async ({ page }) => {
         // Navigate to the application
-        await page.goto("/");
+        await page.goto("/test-blue-cat-moon");
 
         // Should eventually connect
-        await expect(page.getByTestId("status-bar")).toHaveText("Status: Connected", { timeout: 10000 });
+        await expect(page.getByTestId("status-bar")).toContainText("Live sync active");
 
         // Verify basic functionality works
         const testMessage = "Test message";
@@ -16,8 +16,8 @@ test.describe("Auto-reconnection functionality", () => {
 
     test("should simulate connection loss by blocking WebSocket traffic", async ({ page, context }) => {
         // Navigate to the application and wait for connection
-        await page.goto("/");
-        await expect(page.getByTestId("status-bar")).toHaveText("Status: Connected", { timeout: 10000 });
+        await page.goto("/test-blue-cat-moon");
+        await expect(page.getByTestId("status-bar")).toContainText("Live sync active");
 
         // Block WebSocket connections to force a reconnection scenario
         await context.route("ws://localhost:8080/", (route) => {
@@ -40,20 +40,20 @@ test.describe("Auto-reconnection functionality", () => {
         await context.unroute("ws://localhost:8080/");
 
         // Should eventually reconnect
-        await expect(page.getByTestId("status-bar")).toHaveText("Status: Connected", { timeout: 20000 });
+        await expect(page.getByTestId("status-bar")).toContainText("Live sync active");
     });
 
     test("should maintain connection status properly", async ({ page }) => {
-        await page.goto("/");
+        await page.goto("/test-blue-cat-moon");
 
         // Should show initial connecting then connected status
-        await expect(page.getByTestId("status-bar")).toHaveText("Status: Connected", { timeout: 10000 });
+        await expect(page.getByTestId("status-bar")).toContainText("Live sync active");
 
         // Wait for a bit to ensure connection is stable
         await page.waitForTimeout(2000);
 
         // Should still be connected
-        await expect(page.getByTestId("status-bar")).toHaveText("Status: Connected");
+        await expect(page.getByTestId("status-bar")).toContainText("Live sync active");
 
         // Test that we can send messages (basic functionality)
         const testMessage = "Hello WebSocket";
@@ -62,8 +62,8 @@ test.describe("Auto-reconnection functionality", () => {
     });
 
     test("should handle network interruption gracefully", async ({ page, context }) => {
-        await page.goto("/");
-        await expect(page.getByTestId("status-bar")).toHaveText("Status: Connected", { timeout: 10000 });
+        await page.goto("/test-blue-cat-moon");
+        await expect(page.getByTestId("status-bar")).toContainText("Live sync active");
 
         // Test basic message sending first
         await page.fill("textarea", "Before interruption");
@@ -77,7 +77,7 @@ test.describe("Auto-reconnection functionality", () => {
         await context.setOffline(false);
 
         // Should eventually reconnect
-        await expect(page.getByTestId("status-bar")).toHaveText("Status: Connected", { timeout: 15000 });
+        await expect(page.getByTestId("status-bar")).toContainText("Live sync active");
 
         // Test functionality after reconnection
         await page.fill("textarea", "After reconnection");
