@@ -1,4 +1,22 @@
+import type { PlaywrightTestConfig } from "@playwright/test";
 import { defineConfig, devices } from "@playwright/test";
+
+const extraConfig: Partial<PlaywrightTestConfig> = {};
+
+if (!process.env["CI"]) {
+    extraConfig.webServer = [
+        {
+            command: "cd ../backend && bun run dev",
+            port: 8080,
+            reuseExistingServer: !process.env["CI"],
+        },
+        {
+            command: "bun run dev",
+            port: 3050,
+            reuseExistingServer: !process.env["CI"],
+        },
+    ];
+}
 
 // biome-ignore lint/style/noDefaultExport: We need a default export for Playwright config.
 export default defineConfig({
@@ -9,7 +27,7 @@ export default defineConfig({
     reporter: "html",
     outputDir: "test-results/",
     use: {
-        baseURL: "http://localhost:3050",
+        baseURL: process.env["PLAYWRIGHT_BASE_URL"] ?? "http://localhost:3050",
         trace: "on-first-retry",
         screenshot: "only-on-failure",
         video: "retain-on-failure",
@@ -43,17 +61,5 @@ export default defineConfig({
             },
         },
     ],
-
-    webServer: [
-        {
-            command: "cd ../backend && bun run dev",
-            port: 8080,
-            reuseExistingServer: !process.env["CI"],
-        },
-        {
-            command: "bun run dev",
-            port: 3050,
-            reuseExistingServer: !process.env["CI"],
-        },
-    ],
+    ...extraConfig,
 });

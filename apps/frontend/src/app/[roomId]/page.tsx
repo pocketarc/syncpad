@@ -27,14 +27,16 @@ export default function RoomPage({ params }: RoomPageProps) {
         });
     }, [params]);
 
-    const port = Number.parseInt(process.env["NEXT_PUBLIC_WEBSOCKET_PORT"] ?? "3001");
+    const port = Number.parseInt(process.env["NEXT_PUBLIC_WEBSOCKET_PORT"] ?? "8080");
     const hostname = useHostname();
+    const defaultWebSocketUrl = `ws://${hostname}:${port}`;
+    const websocketUrl = process.env["NEXT_PUBLIC_WEBSOCKET_URI"] ?? defaultWebSocketUrl;
 
     const [text, setText] = useState("");
     const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
 
     // Construct WebSocket URL with room ID path
-    const wsUrl = hostname && roomId && isValidRoomId(roomId) ? `ws://${hostname}:${port}/${roomId}` : null;
+    const wsUrl = hostname && roomId && isValidRoomId(roomId) ? `${websocketUrl}/${roomId}` : null;
 
     const { status, lastMessage, sendMessage } = useScratchpadSocket(wsUrl);
     const isConnected = status === "Connected";
