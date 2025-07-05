@@ -25,7 +25,7 @@ Because god damn, not everything needs to be monetized.
 ## ✨ Features
 
 - Zero setup, with no login or configuration required.
-- Memorable room URLs like `/brave-coral-eagle-castle` that you can share with others.
+- Memorable room URLs like `/room?id=brave-coral-eagle-castle` that you can share with others.
 - Real-time synchronization of text and files across all connected devices in the same room.
 - Complete room isolation - each session is private and separate from others.
 - Drag and drop support for file sharing.

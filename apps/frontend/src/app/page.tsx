@@ -9,7 +9,7 @@ import { redirect } from "next/navigation";
 export default function HomePage() {
     useEffect(() => {
         const roomId = generateRoomId();
-        redirect(`/${roomId}`);
+        redirect(`/room?id=${roomId}`);
     }, []);
 
     return (

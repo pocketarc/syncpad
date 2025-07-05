@@ -5,11 +5,11 @@ test.describe("Room Functionality", () => {
         await page.goto("/");
 
         // Wait for redirect to complete
-        await page.waitForURL(/\/[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page.waitForURL(/room?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
 
         // Verify we're on a room page with proper format
-        const url = page.url();
-        const roomId = url.split("/").pop();
+        const url = new URL(page.url());
+        const roomId = url.searchParams.get("id");
         expect(roomId).toMatch(/^[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
 
         // Verify room ID is displayed in the UI
@@ -19,7 +19,7 @@ test.describe("Room Functionality", () => {
 
     test("should show share room button", async ({ page }) => {
         await page.goto("/");
-        await page.waitForURL(/\/[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page.waitForURL(/room?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
 
         // Verify share room button exists
         await expect(page.locator("button", { hasText: "📋 Share Room" })).toBeVisible();
@@ -37,11 +37,11 @@ test.describe("Room Functionality", () => {
         await page2.goto("/");
 
         // Wait for redirects and get room IDs
-        await page1.waitForURL(/\/[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
-        await page2.waitForURL(/\/[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page1.waitForURL(/room?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page2.waitForURL(/room?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
 
-        const room1Id = page1.url().split("/").pop();
-        const room2Id = page2.url().split("/").pop();
+        const room1Id = new URL(page1.url()).searchParams.get("id");
+        const room2Id = new URL(page2.url()).searchParams.get("id");
 
         // Ensure rooms are different
         expect(room1Id).not.toBe(room2Id);
@@ -76,7 +76,7 @@ test.describe("Room Functionality", () => {
 
         // Go to the same room on both pages
         await page1.goto("/");
-        await page1.waitForURL(/\/[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page1.waitForURL(/room?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
 
         const roomUrl = page1.url();
         await page2.goto(roomUrl);
@@ -110,7 +110,7 @@ test.describe("Room Functionality", () => {
 
         // Go to the same room on both pages
         await page1.goto("/");
-        await page1.waitForURL(/\/[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page1.waitForURL(/room?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
 
         const roomUrl = page1.url();
         await page2.goto(roomUrl);
@@ -139,14 +139,14 @@ test.describe("Room Functionality", () => {
 
     test("should handle invalid room IDs", async ({ page }) => {
         // Try to navigate to an invalid room ID
-        await page.goto("/invalid-room-id");
+        await page.goto("/room?id=invalid-room-id");
 
         // Should redirect back to home and then to a new valid room
-        await page.waitForURL(/\/[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page.waitForURL(/\/room\?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
 
         // Verify we end up in a valid room
-        const url = page.url();
-        const roomId = url.split("/").pop();
+        const url = new URL(page.url());
+        const roomId = url.searchParams.get("id");
         expect(roomId).toMatch(/^[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
     });
 
@@ -160,7 +160,7 @@ test.describe("Room Functionality", () => {
         await context.grantPermissions(["clipboard-read", "clipboard-write"]);
 
         await page.goto("/");
-        await page.waitForURL(/\/[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page.waitForURL(/room?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
 
         const roomUrl = page.url();
 

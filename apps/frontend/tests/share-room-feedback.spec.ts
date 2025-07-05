@@ -6,7 +6,7 @@ test.describe("Share Room Button Feedback", () => {
         await context.grantPermissions(["clipboard-read", "clipboard-write"]);
 
         // Visit a test room
-        await page.goto("/test-blue-cat-moon");
+        await page.goto("/room?id=test-blue-cat-moon");
 
         // Wait for the page to load and WebSocket to connect
         await expect(page.getByTestId("status-bar")).toContainText("Connected");
@@ -25,7 +25,7 @@ test.describe("Share Room Button Feedback", () => {
 
         // Verify the URL was actually copied to clipboard
         const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
-        expect(clipboardText).toContain("/test-blue-cat-moon");
+        expect(clipboardText).toContain("/room?id=test-blue-cat-moon");
 
         // Wait for button to return to original state (2 second timeout)
         await expect(shareButton).toContainText("📋 Share Room", { timeout: 3000 });
@@ -34,7 +34,7 @@ test.describe("Share Room Button Feedback", () => {
 
     test("shows error feedback when clipboard fails", async ({ page }) => {
         // Visit a test room
-        await page.goto("/test-blue-cat-moon");
+        await page.goto("/room?id=test-blue-cat-moon");
 
         // Wait for the page to load and WebSocket to connect
         await expect(page.getByTestId("status-bar")).toContainText("Connected");

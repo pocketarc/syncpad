@@ -70,7 +70,7 @@ This contains the Next.js client application.
 -   `src/app/`: The core application code following the Next.js App Router paradigm.
     -   `layout.tsx`: The root layout, setting up fonts and global styles.
     -   `page.tsx`: The root page that automatically redirects to a new room with a generated room ID.
-    -   `[roomId]/page.tsx`: The main room page component that handles the SyncPad interface for a specific room.
+    -   `room/page.tsx`: The main room page component that handles the SyncPad interface for a specific room.
 -   `src/components/`: Reusable, "dumb" React components focused on presentation.
     -   `FileDropZone.tsx`: A wrapper component that handles both drag-and-drop events and click-to-upload functionality.
     -   `ScratchpadInput.tsx`: The main `<textarea>` for text entry.
@@ -121,9 +121,9 @@ All communication between the client and server uses a simple JSON-based message
 SyncPad uses a room-based architecture to isolate different sessions:
 
 1.  **Room ID Generation:** Memorable room IDs are generated using 4 random words (adjective-color-animal-noun format) like `brave-coral-eagle-castle`.
-2.  **URL Structure:** Each room has its own URL: `/{room-id}`. Visiting the root `/` automatically redirects to a new room.
+2.  **URL Structure:** Each room has its own URL, using a query parameter: `/room?id={room-id}`. Visiting the root `/` automatically redirects to a new room.
 3.  **Room Validation:** The backend validates room IDs to ensure they follow the correct 4-word format before allowing WebSocket connections.
-4.  **WebSocket Connection:** Clients connect to `ws://host:port/{room-id}`, and the backend extracts the room ID from the URL path.
+4.  **WebSocket Connection:** The frontend client extracts the `roomId` from the URL query parameter. It then connects to `ws://host:port/{room-id}`, and the backend extracts the room ID from the WebSocket URL path to place the client in the correct room.
 
 ### 5.3. Publish-Subscribe (Pub/Sub) Model
 
@@ -135,33 +135,33 @@ The core of the synchronization logic relies on Bun's built-in pub/sub capabilit
 ### 5.4. Data Flow: Text Sync
 
 1.  **User Action:** A user types in the `<ScratchpadInput>`.
-2.  **React Event & Callback:** The `onChange` event fires `handleTextChange` in `[roomId]/page.tsx`.
+2.  **React Event & Callback:** The `onChange` event fires `handleTextChange` in `room/page.tsx`.
 3.  **Local State Update:** The callback first calls `setText(newText)` to update the UI of the *current* client instantly for a responsive feel.
 4.  **Send Message:** It then creates a `TextMessage` object and calls the `sendMessage` function from the `useScratchpadSocket` hook.
 5.  **Server Broadcast:** The backend receives the message and publishes it to the room-specific topic (`room:{room-id}`).
 6.  **Remote Client Reception:** All *other* clients in the same room receive the message via their `socket.onmessage` handler inside the `useScratchpadSocket` hook.
 7.  **Hook State Update:** The hook calls `setLastMessage(message)`.
-8.  **Remote UI Update:** The `useEffect` in `[roomId]/page.tsx` on the other clients (which depends on `[lastMessage]`) is triggered. It checks `message.type === 'text'` and calls `setText(message.payload)`, updating their UI to match.
+8.  **Remote UI Update:** The `useEffect` in `room/page.tsx` on the other clients (which depends on `[lastMessage]`) is triggered. It checks `message.type === 'text'` and calls `setText(message.payload)`, updating their UI to match.
 
 ### 5.5. Data Flow: File Sync
 
 1.  **User Action:** A user either drags a file onto the `<FileDropZone>` or clicks it to select a file.
-2.  **File Reading:** The `onFileDrop` event in `[roomId]/page.tsx` uses the `FileReader` API to read the file as a **Base64 data URL**.
+2.  **File Reading:** The `onFileDrop` event in `room/page.tsx` uses the `FileReader` API to read the file as a **Base64 data URL**.
 3.  **Send Message:** Once the `FileReader` completes, its `onload` callback fires, calling `sendMessage` with a `FileMessage` object containing the file's name, MIME type, and base64 data.
 4.  **Broadcast:** The backend receives and broadcasts the `FileMessage` to all clients in the room.
-5.  **Receive Message:** All other clients in the same room receive the `FileMessage`. The `useEffect` in `[roomId]/page.tsx` detects the message type.
+5.  **Receive Message:** All other clients in the same room receive the `FileMessage`. The `useEffect` in `room/page.tsx` detects the message type.
 6.  **Trigger Download:** It calls the `downloadFile` utility, which decodes the base64 data into a `Blob`, creates an invisible `<a>` tag with a `download` attribute, programmatically clicks it, and removes it from the DOM. This securely triggers a native browser download prompt.
 
 ### 5.6. Room Usage
 
 ***For Users:**
 - Visit the root URL (`/`) to automatically create a new room
-- Share the room URL (e.g., `/brave-coral-eagle-castle`) with others to collaborate
+- Share the room URL (e.g., `/room?id=brave-coral-eagle-castle`) with others to collaborate
 - Use the "📋 Share Room" button to copy the room URL to clipboard
 - Each room is completely isolated - messages and files only sync within the same room
 
 **For Developers/Testing:**
-- Use fixed room IDs in tests (e.g., `/test-blue-cat-moon`) to ensure clients connect to the same room
+- Use fixed room IDs in tests (e.g., `/room?id=test-blue-cat-moon`) to ensure clients connect to the same room
 - All existing functionality works the same, just scoped to the specific room
 - Room IDs must follow the 4-word format: `word-word-word-word`
 

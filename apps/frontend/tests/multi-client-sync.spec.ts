@@ -14,7 +14,7 @@ test.describe("Multi-Client File Sync", () => {
         const page2 = await context2.newPage();
 
         // Navigate both pages to the app
-        await Promise.all([page1.goto("/test-blue-cat-moon"), page2.goto("/test-blue-cat-moon")]);
+        await Promise.all([page1.goto("/room?id=test-blue-cat-moon"), page2.goto("/room?id=test-blue-cat-moon")]);
 
         // Wait for both pages to be connected
         await Promise.all([
@@ -50,7 +50,7 @@ test.describe("Multi-Client File Sync", () => {
         const page1 = await context1.newPage();
         const page2 = await context2.newPage();
 
-        await Promise.all([page1.goto("/test-blue-cat-moon"), page2.goto("/test-blue-cat-moon")]);
+        await Promise.all([page1.goto("/room?id=test-blue-cat-moon"), page2.goto("/room?id=test-blue-cat-moon")]);
 
         // Wait for connections
         await Promise.all([
@@ -87,7 +87,7 @@ test.describe("Multi-Client File Sync", () => {
         const page1 = await context1.newPage();
         const page2 = await context2.newPage();
 
-        await Promise.all([page1.goto("/test-blue-cat-moon"), page2.goto("/test-blue-cat-moon")]);
+        await Promise.all([page1.goto("/room?id=test-blue-cat-moon"), page2.goto("/room?id=test-blue-cat-moon")]);
 
         await Promise.all([
             expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
@@ -131,7 +131,7 @@ test.describe("Multi-Client File Sync", () => {
         const page1 = await context1.newPage();
         const page2 = await context2.newPage();
 
-        await Promise.all([page1.goto("/test-blue-cat-moon"), page2.goto("/test-blue-cat-moon")]);
+        await Promise.all([page1.goto("/room?id=test-blue-cat-moon"), page2.goto("/room?id=test-blue-cat-moon")]);
 
         await Promise.all([
             expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
@@ -173,9 +173,9 @@ test.describe("Multi-Client File Sync", () => {
         const page3 = await context3.newPage();
 
         await Promise.all([
-            page1.goto("/test-blue-cat-moon"),
-            page2.goto("/test-blue-cat-moon"),
-            page3.goto("/test-blue-cat-moon"),
+            page1.goto("/room?id=test-blue-cat-moon"),
+            page2.goto("/room?id=test-blue-cat-moon"),
+            page3.goto("/room?id=test-blue-cat-moon"),
         ]);
 
         // Wait for all connections

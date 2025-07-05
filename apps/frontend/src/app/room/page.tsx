@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { FileDropZone } from "@/components/FileDropZone";
@@ -13,19 +14,10 @@ import { downloadFile } from "@/lib/downloadFile";
 import { isValidRoomId } from "@/lib/roomId";
 import type { TextMessage } from "@/lib/types";
 
-interface RoomPageProps {
-    params: Promise<{ roomId: string }>;
-}
-
 // biome-ignore lint/style/noDefaultExport: Next.js requires a default export for pages.
-export default function RoomPage({ params }: RoomPageProps) {
-    const [roomId, setRoomId] = useState<string | null>(null);
-
-    useEffect(() => {
-        params.then(({ roomId }) => {
-            setRoomId(roomId);
-        });
-    }, [params]);
+export default function RoomPage() {
+    const searchParams = useSearchParams();
+    const roomId = searchParams.get("id");
 
     const port = Number.parseInt(process.env["NEXT_PUBLIC_WEBSOCKET_PORT"] ?? "8080");
     const hostname = useHostname();
@@ -94,7 +86,7 @@ export default function RoomPage({ params }: RoomPageProps) {
     const handleCopyRoomUrl = useCallback(async () => {
         if (typeof window !== "undefined" && roomId) {
             try {
-                const roomUrl = `${window.location.origin}/${roomId}`;
+                const roomUrl = `${window.location.origin}/room?id=${roomId}`;
                 await navigator.clipboard.writeText(roomUrl);
                 setCopyStatus("copied");
                 setTimeout(() => setCopyStatus("idle"), 2000);
@@ -141,3 +133,4 @@ export default function RoomPage({ params }: RoomPageProps) {
         </div>
     );
 }
+
