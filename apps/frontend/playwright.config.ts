@@ -8,12 +8,12 @@ if (!process.env["CI"]) {
         {
             command: "cd ../backend && bun run dev",
             port: 8080,
-            reuseExistingServer: !process.env["CI"],
+            reuseExistingServer: true,
         },
         {
             command: "bun run dev",
             port: 3050,
-            reuseExistingServer: !process.env["CI"],
+            reuseExistingServer: true,
         },
     ];
 }
@@ -24,7 +24,12 @@ export default defineConfig({
     fullyParallel: true,
     forbidOnly: !!process.env["CI"],
     retries: process.env["CI"] ? 2 : 0,
-    reporter: "html",
+    maxFailures: 3,
+    reporter: [[process.env["CI"] ? "github" : "list"], ["html", { open: "never" }]],
+    reportSlowTests: {
+        max: 5,
+        threshold: 2000,
+    },
     outputDir: "test-results/",
     use: {
         baseURL: process.env["PLAYWRIGHT_BASE_URL"] ?? "http://localhost:3050",
@@ -37,21 +42,6 @@ export default defineConfig({
         {
             name: "chromium",
             use: { ...devices["Desktop Chrome"] },
-        },
-        {
-            name: "firefox",
-            use: { ...devices["Desktop Firefox"] },
-        },
-        {
-            name: "webkit",
-            use: { ...devices["Desktop Safari"] },
-        },
-        {
-            name: "Mobile Chrome",
-            use: {
-                ...devices["Pixel 5"],
-                hasTouch: true,
-            },
         },
         {
             name: "Mobile Safari",

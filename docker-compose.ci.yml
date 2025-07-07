@@ -1,34 +1,40 @@
 services:
-    backend:
-        build:
-            context: .
-            dockerfile: ./apps/backend/Dockerfile
-        hostname: backend
-        environment:
-            - WEBSOCKET_PORT=8080
-
-    frontend:
-        build:
-            context: .
-            dockerfile: ./apps/frontend/Dockerfile
-        hostname: frontend
-        depends_on:
-            - backend
-        environment:
-            - NEXT_PUBLIC_WEBSOCKET_URI=ws://backend:8080
-
-    playwright:
-        build:
-            context: .
-            dockerfile: ./apps/frontend/Dockerfile.playwright
-        depends_on:
-            - frontend
-            - backend
-        environment:
-            - PLAYWRIGHT_BASE_URL=http://frontend:3000
-            - CI=true
-        volumes:
-            # Mount volumes to get the test reports out of the container and onto the
-            # GitHub Actions runner, so they can be uploaded as artifacts.
-            - ./apps/frontend/playwright-report:/usr/src/app/apps/frontend/playwright-report
-            - ./apps/frontend/test-results:/usr/src/app/apps/frontend/test-results
+  backend:
+    build:
+      context: .
+      dockerfile: ./apps/backend/Dockerfile
+    hostname: backend
+    environment:
+      - WEBSOCKET_PORT=8080
+  frontend:
+    build:
+      context: .
+      dockerfile: ./apps/frontend/Dockerfile
+      args:
+          - NEXT_PUBLIC_WEBSOCKET_URI=ws://backend:8080
+    hostname: frontend
+    depends_on:
+      - backend
+    environment:
+      - NEXT_PUBLIC_WEBSOCKET_URI=ws://backend:8080
+  playwright:
+    build:
+      context: .
+      dockerfile: apps/playwright/Dockerfile
+    # The below 3 items come from: https://playwright.dev/docs/docker#recommended-docker-configuration
+    init: true
+    ipc: host
+    cap_add:
+      - SYS_ADMIN
+    depends_on:
+      - frontend
+      - backend
+    environment:
+      - CI=true
+      - PLAYWRIGHT_BASE_URL=http://frontend:3000
+      - NEXT_PUBLIC_WEBSOCKET_URI=ws://backend:8080
+    volumes:
+      # Mount volumes to get the test reports out of the container and onto the
+      # GitHub Actions runner, so they can be uploaded as artifacts.
+      - ./apps/frontend/playwright-report:/usr/src/app/apps/frontend/playwright-report
+      - ./apps/frontend/test-results:/usr/src/app/apps/frontend/test-results

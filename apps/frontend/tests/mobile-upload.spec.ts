@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
-import path from "path";
-import { fileURLToPath } from "url";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 test.describe("Mobile File Upload", () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto("/test-blue-cat-moon");
+        await page.goto("/room?id=test-blue-cat-moon");
         // Wait for WebSocket connection
         await expect(page.locator('[data-testid="status-bar"]')).toContainText("Live sync active");
     });

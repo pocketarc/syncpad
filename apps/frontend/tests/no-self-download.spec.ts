@@ -11,8 +11,8 @@ test.describe("File Upload - No Self Download", () => {
         const page2 = await context.newPage();
 
         // Navigate both pages to the app
-        await page1.goto("/test-blue-cat-moon");
-        await page2.goto("/test-blue-cat-moon");
+        await page1.goto("/room?id=test-blue-cat-moon");
+        await page2.goto("/room?id=test-blue-cat-moon");
 
         // Wait for both to connect
         await expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active");
@@ -58,9 +58,9 @@ test.describe("File Upload - No Self Download", () => {
         const page3 = await context.newPage();
 
         // Navigate all pages to the app
-        await page1.goto("/test-blue-cat-moon");
-        await page2.goto("/test-blue-cat-moon");
-        await page3.goto("/test-blue-cat-moon");
+        await page1.goto("/room?id=test-blue-cat-moon");
+        await page2.goto("/room?id=test-blue-cat-moon");
+        await page3.goto("/room?id=test-blue-cat-moon");
 
         // Wait for all to connect
         await expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active");

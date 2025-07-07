@@ -5,7 +5,7 @@ COPY package.json bun.lock ./
 COPY apps/backend/package.json ./apps/backend/
 COPY apps/frontend/package.json ./apps/frontend/
 
-RUN bun install
+RUN bun install --production --no-cache --no-save --frozen-lockfile
 
 # Copy the backend source code.
 COPY apps/backend/src ./src

@@ -1,12 +1,27 @@
-FROM mcr.microsoft.com/playwright:v1.50.0-noble AS base
+FROM mcr.microsoft.com/playwright:v1.53.1-noble
 WORKDIR /usr/src/app
 
-# Copy only the files needed for dependency installation to leverage Docker cache.
-COPY ../../package.json ../../bun.lock ../../turbo.json ./frontend/
-# Install all dependencies using Bun.
-RUN bun install
+# Install prerequisites for Bun.
+RUN apt-get update && apt-get install -y \
+    unzip \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy the entire monorepo source code into the image.
-COPY . ../../
+# Copy package files.
+COPY package.json bun.lock ./
+COPY apps/backend/package.json ./apps/backend/
+COPY apps/frontend/package.json ./apps/frontend/
 
-CMD ["bun", "--cwd", "./apps/frontend", "test"]
+# Install Bun and then use it to install dependencies.
+RUN curl -fsSL https://bun.sh/install | bash
+RUN /root/.bun/bin/bun install
+
+# Copy frontend source (including tests).
+COPY apps/frontend ./apps/frontend
+
+# Set environment variables for Playwright
+ENV CI=true
+ENV PLAYWRIGHT_BASE_URL=http://frontend:3000
+
+# Run the tests.
+CMD ["/root/.bun/bin/bun", "--cwd", "apps/frontend", "test"]

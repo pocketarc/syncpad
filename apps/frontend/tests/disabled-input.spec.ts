@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Disabled Input Functionality", () => {
     test("inputs should be disabled initially while connecting", async ({ page }) => {
-        await page.goto("http://localhost:3050/test-blue-cat-moon");
+        await page.goto("http://localhost:3050/room?id=test-blue-cat-moon");
 
         // Immediately check if inputs are disabled during the initial connection phase
         const textarea = page.locator("textarea");
@@ -40,7 +40,7 @@ test.describe("Disabled Input Functionality", () => {
     });
 
     test("inputs are properly enabled when connected", async ({ page }) => {
-        await page.goto("http://localhost:3050/test-blue-cat-moon");
+        await page.goto("http://localhost:3050/room?id=test-blue-cat-moon");
 
         // Wait for successful connection
         await page.waitForSelector('[data-testid="status-bar"]:has-text("Live sync active")', { timeout: 10000 });

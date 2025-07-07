@@ -5,7 +5,7 @@ test.describe("Room Functionality", () => {
         await page.goto("/");
 
         // Wait for redirect to complete
-        await page.waitForURL(/room?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page.waitForURL(/room\?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
 
         // Verify we're on a room page with proper format
         const url = new URL(page.url());
@@ -19,7 +19,7 @@ test.describe("Room Functionality", () => {
 
     test("should show share room button", async ({ page }) => {
         await page.goto("/");
-        await page.waitForURL(/room?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page.waitForURL(/room\?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
 
         // Verify share room button exists
         await expect(page.locator("button", { hasText: "📋 Share Room" })).toBeVisible();
@@ -37,8 +37,8 @@ test.describe("Room Functionality", () => {
         await page2.goto("/");
 
         // Wait for redirects and get room IDs
-        await page1.waitForURL(/room?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
-        await page2.waitForURL(/room?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page1.waitForURL(/room\?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page2.waitForURL(/room\?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
 
         const room1Id = new URL(page1.url()).searchParams.get("id");
         const room2Id = new URL(page2.url()).searchParams.get("id");
@@ -76,7 +76,7 @@ test.describe("Room Functionality", () => {
 
         // Go to the same room on both pages
         await page1.goto("/");
-        await page1.waitForURL(/room?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page1.waitForURL(/room\?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
 
         const roomUrl = page1.url();
         await page2.goto(roomUrl);
@@ -110,7 +110,7 @@ test.describe("Room Functionality", () => {
 
         // Go to the same room on both pages
         await page1.goto("/");
-        await page1.waitForURL(/room?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page1.waitForURL(/room\?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
 
         const roomUrl = page1.url();
         await page2.goto(roomUrl);
@@ -160,7 +160,7 @@ test.describe("Room Functionality", () => {
         await context.grantPermissions(["clipboard-read", "clipboard-write"]);
 
         await page.goto("/");
-        await page.waitForURL(/room?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page.waitForURL(/room\?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
 
         const roomUrl = page.url();
 

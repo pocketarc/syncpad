@@ -1,10 +1,8 @@
 <div align="center">
-  <h1>🔄 SyncPad</h1>
+  <h1>SyncPad</h1>
   <p>The zero-friction cross-device clipboard.</p>
+  <img src="https://raw.githubusercontent.com/pocketarc/syncpad/main/apps/frontend/public/logo.png" alt="SyncPad Logo" width="200" />
 </div>
-
-@todo: add logo image
-@todo fix badge links
 
 [![CI](https://github.com/pocketarc/syncpad/actions/workflows/ci.yml/badge.svg)](https://github.com/pocketarc/syncpad/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-AGPLv3-blue.svg)](LICENSE)
@@ -33,7 +31,7 @@ Because god damn, not everything needs to be monetized.
 
 ## 🚀 Quick Start
 
-1. Visit [syncpad.pocketarc.com](https://syncpad.pocketarc.com). (@todo: add link to live demo)
+1. Visit [syncpad.app](https://syncpad.app). (@todo: add link to live demo)
    - Alternatively, you can run it locally (see below).
 2. You'll be automatically redirected to a new room with a memorable URL.
 3. Share that room URL with others or open it on your other devices.

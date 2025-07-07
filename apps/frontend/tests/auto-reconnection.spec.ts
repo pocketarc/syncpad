@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test.describe("Auto-reconnection functionality", () => {
     test("should show connecting status initially and then connected", async ({ page }) => {
         // Navigate to the application
-        await page.goto("/test-blue-cat-moon");
+        await page.goto("/room?id=test-blue-cat-moon");
 
         // Should eventually connect
         await expect(page.getByTestId("status-bar")).toContainText("Live sync active");
@@ -15,12 +15,18 @@ test.describe("Auto-reconnection functionality", () => {
     });
 
     test("should simulate connection loss by blocking WebSocket traffic", async ({ page, context }) => {
+        if (!process.env["NEXT_PUBLIC_WEBSOCKET_URI"]) {
+            throw new Error("NEXT_PUBLIC_WEBSOCKET_URI environment variable is not set.");
+        }
+
+        const websocketUri = process.env["NEXT_PUBLIC_WEBSOCKET_URI"];
+
         // Navigate to the application and wait for connection
-        await page.goto("/test-blue-cat-moon");
+        await page.goto("/room?id=test-blue-cat-moon");
         await expect(page.getByTestId("status-bar")).toContainText("Live sync active");
 
         // Block WebSocket connections to force a reconnection scenario
-        await context.route("ws://localhost:8080/", (route) => {
+        await context.route(websocketUri, (route) => {
             // Block the WebSocket connection
             route.abort();
         });
@@ -37,14 +43,14 @@ test.describe("Auto-reconnection functionality", () => {
         });
 
         // Unblock WebSocket connections
-        await context.unroute("ws://localhost:8080/");
+        await context.unroute(websocketUri);
 
         // Should eventually reconnect
         await expect(page.getByTestId("status-bar")).toContainText("Live sync active");
     });
 
     test("should maintain connection status properly", async ({ page }) => {
-        await page.goto("/test-blue-cat-moon");
+        await page.goto("/room?id=test-blue-cat-moon");
 
         // Should show initial connecting then connected status
         await expect(page.getByTestId("status-bar")).toContainText("Live sync active");
@@ -62,7 +68,7 @@ test.describe("Auto-reconnection functionality", () => {
     });
 
     test("should handle network interruption gracefully", async ({ page, context }) => {
-        await page.goto("/test-blue-cat-moon");
+        await page.goto("/room?id=test-blue-cat-moon");
         await expect(page.getByTestId("status-bar")).toContainText("Live sync active");
 
         // Test basic message sending first
