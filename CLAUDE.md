@@ -52,6 +52,7 @@ SyncPad employs a simple client-server architecture composed of two primary serv
 -   **Frontend:** **Next.js 15** (with Turbopack) and **React 19**.
 -   **Styling:** **Tailwind CSS 4**.
 -   **Monorepo Management:** **Turbo** for orchestrating build, development, and linting tasks.
+-   **Containerization**: **Docker** with Docker Compose for local development and CI.
 -   **End-to-End Testing:** **Playwright** for comprehensive, multi-browser testing of the application's core synchronization features.
 
 ## 4. Project Structure
@@ -71,13 +72,17 @@ This contains the Next.js client application.
     -   `layout.tsx`: The root layout, setting up fonts and global styles.
     -   `page.tsx`: The root page that automatically redirects to a new room with a generated room ID.
     -   `room/page.tsx`: The main room page component that handles the SyncPad interface for a specific room.
+    -   `about/page.tsx`: A static page providing information about the project.
 -   `src/components/`: Reusable, "dumb" React components focused on presentation.
+    -   `Header.tsx`: The main header component, including the logo, title, and dark mode toggle.
+    -   `Footer.tsx`: The main footer component with links to about page and social media.
     -   `FileDropZone.tsx`: A wrapper component that handles both drag-and-drop events and click-to-upload functionality.
     -   `ScratchpadInput.tsx`: The main `<textarea>` for text entry.
     -   `StatusBar.tsx`: A simple component to display the WebSocket connection status, including a `data-testid="status-bar"` for testing.
 -   `src/hooks/`: Reusable logic encapsulated in custom React hooks.
     -   `useHostname.ts`: A client-side hook to safely get the `window.location.hostname` for constructing the WebSocket URL. This is critical for making the app work on any network without hardcoding `localhost`.
     -   `useScratchpadSocket.ts`: **The most important frontend hook.** It manages the entire WebSocket lifecycle: connection, event listeners (`onopen`, `onmessage`, etc.), state management (`status`, `lastMessage`), and provides a `sendMessage` function.
+    -   `useDarkMode.ts`: Manages the dark mode state and persists the user's preference in `localStorage`.
 -   `src/lib/`: Shared utilities and type definitions.
     -   `types.ts`: Defines the TypeScript types for the WebSocket message protocol. **This is the contract between the frontend and backend.**
     -   `downloadFile.ts`: A utility function that takes a file payload and triggers a browser download, which is the mechanism for receiving files.
@@ -89,7 +94,19 @@ This contains the Next.js client application.
     -   `mobile-upload.spec.ts`: Tests behavior on mobile viewports.
     -   `disabled-input.spec.ts`: Ensures the input is disabled when not connected to the WebSocket server.
     -   `room-functionality.spec.ts`: Tests room isolation, sharing, and routing functionality.
+    -   `auto-reconnection.spec.ts`: Tests the client's ability to automatically reconnect if the WebSocket connection is lost.
+    -   `dark-mode.spec.ts`: Tests the dark mode toggle functionality.
+    -   `no-self-download.spec.ts`: Ensures a user who uploads a file does not receive a download prompt for their own file.
+    -   `share-room-feedback.spec.ts`: Verifies the "Copy" button provides user feedback on success or failure.
 -   `playwright.config.ts`: The main Playwright configuration, which defines projects for different browsers and includes the crucial `webServer` option to automatically launch the dev environment for testing.
+-   `playwright.video.config.ts`: A separate Playwright configuration for recording video of test runs.
+
+### 4.3. `apps/playwright`
+-   `Dockerfile`: A dedicated Dockerfile for running Playwright tests in a containerized CI environment.
+
+### 4.4. Root Configuration
+-   `docker-compose.yml`: Defines the services for local development.
+-   `docker-compose.ci.yml`: Defines the services for running in a CI environment.
 
 ## 5. Core Concepts & Data Flow
 
@@ -165,7 +182,7 @@ The core of the synchronization logic relies on Bun's built-in pub/sub capabilit
 - All existing functionality works the same, just scoped to the specific room
 - Room IDs must follow the 4-word format: `word-word-word-word`
 
-## 6. Local Developme*nt & Testing
+## 6. Local Development & Testing
 
 ### 6.1. Testing
 
