@@ -65,6 +65,7 @@ export function FileDropZone({ onFileDrop, children, disabled = false }: FileDro
                 className="hidden"
                 onChange={handleFileInputChange}
                 disabled={disabled}
+                aria-hidden="true"
             />
             {children}
             <div

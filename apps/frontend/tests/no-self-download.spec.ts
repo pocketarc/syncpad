@@ -5,20 +5,27 @@ import { expect, test } from "@playwright/test";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 test.describe("File Upload - No Self Download", () => {
-    test("sender should not download their own uploaded file", async ({ context }) => {
+    test("sender should not download their own uploaded file", async ({ context, browserName }, testInfo) => {
         // Create two pages (clients)
         const page1 = await context.newPage();
         const page2 = await context.newPage();
 
+        // Create unique room ID for this test execution
+        const timestamp = Date.now().toString(36);
+        const roomId = `test-${browserName}-${testInfo.workerIndex}-${timestamp}`;
+
         // Navigate both pages to the app
-        await page1.goto("/room?id=test-blue-cat-moon");
-        await page2.goto("/room?id=test-blue-cat-moon");
+        await page1.goto(`/room?id=${roomId}`);
+        await page2.goto(`/room?id=${roomId}`);
 
         // Wait for both to connect
         await expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active");
         await expect(page2.locator('[data-testid="status-bar"]')).toContainText("Live sync active");
 
-        // Track downloads on both pages
+        // Create a test file to upload
+        const testFilePath = path.join(__dirname, "fixtures", "test.txt");
+
+        // Track downloads on both pages - set up listeners BEFORE uploading
         const page1Downloads: string[] = [];
         const page2Downloads: string[] = [];
 
@@ -30,15 +37,12 @@ test.describe("File Upload - No Self Download", () => {
             page2Downloads.push(download.suggestedFilename());
         });
 
-        // Create a test file to upload
-        const testFilePath = path.join(__dirname, "fixtures", "test.txt");
-
         // Upload file from page1 (sender)
         const fileInput1 = page1.locator('input[type="file"]');
         await fileInput1.setInputFiles(testFilePath);
 
-        // Wait a moment for the file to be processed and potentially downloaded
-        await page1.waitForTimeout(1000);
+        // Wait for the file to be processed
+        await page2.waitForTimeout(1500); // Wait for download to complete on page2
 
         // Verify that page1 (sender) did NOT download the file
         expect(page1Downloads).toHaveLength(0);
@@ -51,16 +55,20 @@ test.describe("File Upload - No Self Download", () => {
         await page2.close();
     });
 
-    test("multiple senders should not download their own files", async ({ context }) => {
+    test("multiple senders should not download their own files", async ({ context, browserName }, testInfo) => {
         // Create three pages (clients)
         const page1 = await context.newPage();
         const page2 = await context.newPage();
         const page3 = await context.newPage();
 
+        // Create unique room ID for this test execution
+        const timestamp = Date.now().toString(36);
+        const roomId = `test-${browserName}-${testInfo.workerIndex}-${timestamp}`;
+
         // Navigate all pages to the app
-        await page1.goto("/room?id=test-blue-cat-moon");
-        await page2.goto("/room?id=test-blue-cat-moon");
-        await page3.goto("/room?id=test-blue-cat-moon");
+        await page1.goto(`/room?id=${roomId}`);
+        await page2.goto(`/room?id=${roomId}`);
+        await page3.goto(`/room?id=${roomId}`);
 
         // Wait for all to connect
         await expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active");

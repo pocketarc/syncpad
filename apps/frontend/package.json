@@ -8,7 +8,7 @@
         "build": "next build",
         "start": "next start -p 3050",
         "lint": "tsc --noEmit && biome check --write && next lint",
-        "test": "playwright test",
+        "test": "NEXT_PUBLIC_WEBSOCKET_URI=ws://localhost:8080 playwright test",
         "test:ui": "playwright test --ui",
         "test:debug": "playwright test --debug",
         "test:mobile": "playwright test --grep @mobile",

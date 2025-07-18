@@ -67,13 +67,13 @@ test.describe("File Upload", () => {
         const dropZone = page.locator('[aria-label="File drop zone"]');
 
         // Check initial state
-        await expect(dropZone).toHaveClass(/border-stone-300/);
+        await expect(dropZone).toHaveClass(/border-orange-300/);
 
         // Hover over the drop zone
         await dropZone.hover();
 
         // Should show hover effect (border color change)
-        await expect(dropZone).toHaveClass(/hover:border-stone-400/);
+        await expect(dropZone).toHaveClass(/hover:border-orange-400/);
     });
 
     test("should have proper accessibility attributes", async ({ page }) => {

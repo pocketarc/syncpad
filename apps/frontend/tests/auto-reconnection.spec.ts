@@ -11,6 +11,9 @@ test.describe("Auto-reconnection functionality", () => {
         // Verify basic functionality works
         const testMessage = "Test message";
         await page.fill("textarea", testMessage);
+        await page.waitForFunction(
+            () => (document.querySelector("textarea") as HTMLTextAreaElement).value === "Test message",
+        );
         await expect(page.locator("textarea")).toHaveValue(testMessage);
     });
 
@@ -38,7 +41,7 @@ test.describe("Auto-reconnection functionality", () => {
         });
 
         // Should show reconnecting status when WebSocket can't connect
-        await expect(page.getByTestId("status-bar")).toHaveText(/Status: (Connecting|Reconnecting|Error)/, {
+        await expect(page.getByTestId("status-bar")).toHaveText(/(Connecting|Reconnecting|Error)/, {
             timeout: 10000,
         });
 
@@ -73,6 +76,9 @@ test.describe("Auto-reconnection functionality", () => {
 
         // Test basic message sending first
         await page.fill("textarea", "Before interruption");
+        await page.waitForFunction(
+            () => (document.querySelector("textarea") as HTMLTextAreaElement).value === "Before interruption",
+        );
         await expect(page.locator("textarea")).toHaveValue("Before interruption");
 
         // Block network traffic temporarily to simulate network issue

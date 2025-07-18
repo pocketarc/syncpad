@@ -22,11 +22,7 @@ export function ScratchpadInput({ value, onChange, disabled = false }: Scratchpa
                     ? "bg-orange-50 dark:bg-stone-800 text-orange-400 dark:text-stone-500 cursor-not-allowed border-orange-200 dark:border-stone-600"
                     : "bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 border-orange-200 dark:border-stone-600 focus:ring-orange-400 dark:focus:ring-orange-500 focus:border-orange-400 dark:focus:border-orange-500"
             }`}
-            placeholder={
-                disabled
-                    ? "Connecting to server..."
-                    : "Start typing here... Everything syncs instantly across your devices ∞"
-            }
+            placeholder={disabled ? "Connecting to server..." : "Type here. It appears there. Magic."}
         />
     );
 }

@@ -99,6 +99,7 @@ export default function RoomPage() {
 
     const button = (
         <button
+            name="share-room-button"
             type="button"
             onClick={handleCopyRoomUrl}
             className="px-3 py-2 text-sm bg-white dark:bg-stone-800 border border-orange-200 dark:border-stone-600 hover:bg-orange-50 dark:hover:bg-stone-700 transition-colors duration-200 rounded-lg text-orange-800 dark:text-orange-300 cursor-pointer"
@@ -133,4 +134,3 @@ export default function RoomPage() {
         </div>
     );
 }
-

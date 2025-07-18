@@ -35,7 +35,7 @@ test.describe("Mobile File Upload", () => {
         test.skip(!isMobile, "Mobile-only test");
 
         const instructionText = page.locator(
-            "text=Tap here to select files, or drag and drop files here to sync them.",
+            "text=📁 Tap to select files or drag & drop to sync instantly",
         );
         await expect(instructionText).toBeVisible();
     });
@@ -87,7 +87,7 @@ test.describe("Mobile File Upload", () => {
         expect(boundingBox?.width).toBeGreaterThan(300); // Should take most of the screen width
 
         // Check that text is visible and readable
-        const instructionText = page.locator("text=Tap here to select files");
+        const instructionText = page.locator("text=Tap to select files or drag & drop to sync instantly");
         await expect(instructionText).toBeVisible();
     });
 });

@@ -1,22 +1,20 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Text Synchronization", () => {
-    test.beforeEach(async ({ page }) => {
-        await page.goto("/room?id=test-blue-cat-moon");
-        // Wait for WebSocket connection
-        await expect(page.locator('[data-testid="status-bar"]')).toContainText("Live sync active");
-        // Clear any existing content
-        await page.locator("textarea").fill("");
-    });
+    // Remove the shared beforeEach since we need unique room IDs per test
 
-    test("should sync basic text between two clients", async ({ browser }) => {
+    test("should sync basic text between two clients", async ({ browser, browserName }, testInfo) => {
         const context1 = await browser.newContext();
         const context2 = await browser.newContext();
 
         const page1 = await context1.newPage();
         const page2 = await context2.newPage();
 
-        await Promise.all([page1.goto("/room?id=test-blue-cat-moon"), page2.goto("/room?id=test-blue-cat-moon")]);
+        // Create unique room ID for this test execution
+        const timestamp = Date.now().toString(36);
+        const roomId = `test-${browserName}-${testInfo.workerIndex}-${timestamp}`;
+
+        await Promise.all([page1.goto(`/room?id=${roomId}`), page2.goto(`/room?id=${roomId}`)]);
 
         // Wait for both pages to be connected
         await Promise.all([
@@ -50,7 +48,7 @@ test.describe("Text Synchronization", () => {
         await context2.close();
     });
 
-    test("should sync text across multiple clients", async ({ browser }) => {
+    test("should sync text across multiple clients", async ({ browser, browserName }, testInfo) => {
         const context1 = await browser.newContext();
         const context2 = await browser.newContext();
         const context3 = await browser.newContext();
@@ -59,10 +57,14 @@ test.describe("Text Synchronization", () => {
         const page2 = await context2.newPage();
         const page3 = await context3.newPage();
 
+        // Create unique room ID for this test execution
+        const timestamp = Date.now().toString(36);
+        const roomId = `test-${browserName}-${testInfo.workerIndex}-${timestamp}`;
+
         await Promise.all([
-            page1.goto("/room?id=test-blue-cat-moon"),
-            page2.goto("/room?id=test-blue-cat-moon"),
-            page3.goto("/room?id=test-blue-cat-moon"),
+            page1.goto(`/room?id=${roomId}`),
+            page2.goto(`/room?id=${roomId}`),
+            page3.goto(`/room?id=${roomId}`),
         ]);
 
         // Wait for all connections
@@ -107,14 +109,18 @@ test.describe("Text Synchronization", () => {
         await context3.close();
     });
 
-    test("should handle text replacement correctly", async ({ browser }) => {
+    test("should handle text replacement correctly", async ({ browser, browserName }, testInfo) => {
         const context1 = await browser.newContext();
         const context2 = await browser.newContext();
 
         const page1 = await context1.newPage();
         const page2 = await context2.newPage();
 
-        await Promise.all([page1.goto("/room?id=test-blue-cat-moon"), page2.goto("/room?id=test-blue-cat-moon")]);
+        // Create unique room ID for this test execution
+        const timestamp = Date.now().toString(36);
+        const roomId = `test-${browserName}-${testInfo.workerIndex}-${timestamp}`;
+
+        await Promise.all([page1.goto(`/room?id=${roomId}`), page2.goto(`/room?id=${roomId}`)]);
 
         await Promise.all([
             expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
