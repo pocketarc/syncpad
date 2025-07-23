@@ -35,10 +35,10 @@ export function StatusBar({ status }: StatusBarProps) {
             data-testid="status-bar"
         >
             <span className="text-xs">{getStatusIcon()}</span>
-            {status === "Connected" && "Live sync active"}
-            {status === "Connecting" && "Connecting..."}
-            {status === "Disconnected" && "Offline - changes won't sync"}
-            {!["Connected", "Connecting", "Disconnected"].includes(status) && `Status: ${status}`}
+            {status === "Connected" && " Live sync active"}
+            {status === "Connecting" && " Connecting..."}
+            {status === "Disconnected" && " Offline - changes won't sync"}
+            {!["Connected", "Connecting", "Disconnected"].includes(status) && ` Status: ${status}`}
         </div>
     );
 }

@@ -1,4 +1,4 @@
-import type { FileMessagePayload } from "@/lib/types";
+import type { FileMessagePayload } from "@syncpad/shared";
 
 export function downloadFile(payload: FileMessagePayload) {
     try {

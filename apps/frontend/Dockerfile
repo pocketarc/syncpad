@@ -1,8 +1,10 @@
-FROM oven/bun:1.2.17-slim
+# Stage 1: Build the Next.js application
+FROM oven/bun:1.2.17-slim AS builder
 WORKDIR /usr/src/build
 
 # Copy package files and install dependencies.
 COPY package.json bun.lock tsconfig.json ./
+COPY packages/shared/package.json ./packages/shared/
 COPY apps/backend/package.json ./apps/backend/
 COPY apps/frontend/package.json ./apps/frontend/
 COPY apps/frontend/tsconfig.json ./apps/frontend/
@@ -20,19 +22,19 @@ ENV NEXT_PUBLIC_WEBSOCKET_URI=$NEXT_PUBLIC_WEBSOCKET_URI
 
 # Copy frontend source and build.
 COPY apps/frontend ./apps/frontend
+COPY packages/shared/src ./packages/shared/src
 RUN cd apps/frontend && bun run build
 
-# Move the built files to where we want to serve them.
-RUN mv apps/frontend/out /usr/src/app
+# Stage 2: Serve the application with Nginx
+FROM nginx:stable-alpine
+WORKDIR /usr/share/nginx/html
 
-# Clean up what we don't need.
-RUN rm -rf /usr/src/build
+# Copy the built application from the builder stage
+COPY --from=builder /usr/src/build/apps/frontend/out .
 
-WORKDIR /usr/src/app
+# Copy the Nginx configuration
+COPY apps/frontend/nginx.conf /etc/nginx/nginx.conf
 
-# Expose port and serve.
-EXPOSE 3000
-
-# Run a minimal Bun HTTP server to serve the static files
-# The --single flag ensures SPA routing works by serving index.html for unknown paths
-CMD ["bunx", "serve", ".", "--single"]
+# Expose port and start Nginx
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

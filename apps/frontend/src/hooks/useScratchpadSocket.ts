@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { WebSocketMessage } from "@/lib/types";
+import type { WebSocketMessage } from "@syncpad/shared";
 
 type ConnectionStatus = "Connecting" | "Connected" | "Disconnected" | "Error" | "Reconnecting";
 
@@ -32,6 +32,31 @@ export function useScratchpadSocket(url: string | null) {
         if (reconnectTimeout.current) {
             clearTimeout(reconnectTimeout.current);
             reconnectTimeout.current = null;
+        }
+    }, []);
+
+    const sendMessage = useCallback((message: WebSocketMessage) => {
+        if (ws.current?.readyState === WebSocket.OPEN) {
+            // Generate a unique message ID and track it.
+            const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            const messageWithId = {
+                ...message,
+                messageId,
+            };
+
+            // Track this message ID so we can ignore it when it comes back.
+            sentMessageIds.current.add(messageId);
+
+            // Clean up old message IDs to prevent memory leaks.
+            if (sentMessageIds.current.size > 100) {
+                const ids = Array.from(sentMessageIds.current);
+                sentMessageIds.current.clear();
+                ids.slice(-50).forEach((id) => sentMessageIds.current.add(id));
+            }
+
+            ws.current.send(JSON.stringify(messageWithId));
+        } else {
+            console.error("WebSocket is not connected. Current state:", ws.current?.readyState);
         }
     }, []);
 
@@ -143,31 +168,6 @@ export function useScratchpadSocket(url: string | null) {
             }
         };
     }, [connect, clearTimers]);
-
-    const sendMessage = useCallback((message: WebSocketMessage) => {
-        if (ws.current?.readyState === WebSocket.OPEN) {
-            // Generate a unique message ID and track it.
-            const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-            const messageWithId = {
-                ...message,
-                messageId,
-            };
-
-            // Track this message ID so we can ignore it when it comes back.
-            sentMessageIds.current.add(messageId);
-
-            // Clean up old message IDs to prevent memory leaks.
-            if (sentMessageIds.current.size > 100) {
-                const ids = Array.from(sentMessageIds.current);
-                sentMessageIds.current.clear();
-                ids.slice(-50).forEach((id) => sentMessageIds.current.add(id));
-            }
-
-            ws.current.send(JSON.stringify(messageWithId));
-        } else {
-            console.error("WebSocket is not connected. Current state:", ws.current?.readyState);
-        }
-    }, []);
 
     return { status, lastMessage, sendMessage };
 }

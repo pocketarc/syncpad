@@ -26,12 +26,14 @@ services:
     ipc: host
     cap_add:
       - SYS_ADMIN
+    # Setting the network mode to "service:frontend" allows the Playwright tests to access the frontend at http://localhost.
+    network_mode: "service:frontend"
     depends_on:
       - frontend
       - backend
     environment:
       - CI=true
-      - PLAYWRIGHT_BASE_URL=http://frontend:3000
+      - PLAYWRIGHT_BASE_URL=http://localhost
       - NEXT_PUBLIC_WEBSOCKET_URI=ws://backend:8080
     volumes:
       # Mount volumes to get the test reports out of the container and onto the

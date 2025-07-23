@@ -58,9 +58,6 @@ test.describe("Room Functionality", () => {
         const textarea2 = page2.locator("textarea");
         await textarea2.fill("Message from room 2");
 
-        // Wait a moment for potential synchronization
-        await page1.waitForTimeout(500);
-
         // Verify messages stayed in their respective rooms
         await expect(textarea1).toHaveValue("Message from room 1");
         await expect(textarea2).toHaveValue("Message from room 2");
@@ -156,7 +153,7 @@ test.describe("Room Functionality", () => {
             test.skip();
         }
 
-        // Grant clipboard permissions (Chromium only)
+        // Grant clipboard permissions (Chromium only).
         await context.grantPermissions(["clipboard-read", "clipboard-write"]);
 
         await page.goto("/");

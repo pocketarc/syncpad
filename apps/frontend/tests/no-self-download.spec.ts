@@ -21,6 +21,8 @@ test.describe("File Upload - No Self Download", () => {
         // Wait for both to connect
         await expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active");
         await expect(page2.locator('[data-testid="status-bar"]')).toContainText("Live sync active");
+        await expect(page1.locator('[data-testid="roomid"]')).toHaveText(roomId);
+        await expect(page2.locator('[data-testid="roomid"]')).toHaveText(roomId);
 
         // Create a test file to upload
         const testFilePath = path.join(__dirname, "fixtures", "test.txt");
@@ -29,20 +31,25 @@ test.describe("File Upload - No Self Download", () => {
         const page1Downloads: string[] = [];
         const page2Downloads: string[] = [];
 
+        const downloadPromise = page2.waitForEvent("download");
+
         page1.on("download", (download) => {
+            console.log("Page1 download:", download.suggestedFilename());
             page1Downloads.push(download.suggestedFilename());
         });
 
         page2.on("download", (download) => {
+            console.log("Page2 download:", download.suggestedFilename());
             page2Downloads.push(download.suggestedFilename());
         });
 
         // Upload file from page1 (sender)
         const fileInput1 = page1.locator('input[type="file"]');
+        console.log("Uploading file from page1:", testFilePath);
         await fileInput1.setInputFiles(testFilePath);
 
         // Wait for the file to be processed
-        await page2.waitForTimeout(1500); // Wait for download to complete on page2
+        await downloadPromise;
 
         // Verify that page1 (sender) did NOT download the file
         expect(page1Downloads).toHaveLength(0);
@@ -74,6 +81,9 @@ test.describe("File Upload - No Self Download", () => {
         await expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active");
         await expect(page2.locator('[data-testid="status-bar"]')).toContainText("Live sync active");
         await expect(page3.locator('[data-testid="status-bar"]')).toContainText("Live sync active");
+        await expect(page1.locator('[data-testid="roomid"]')).toHaveText(roomId);
+        await expect(page2.locator('[data-testid="roomid"]')).toHaveText(roomId);
+        await expect(page3.locator('[data-testid="roomid"]')).toHaveText(roomId);
 
         // Track downloads on all pages
         const page1Downloads: string[] = [];

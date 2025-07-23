@@ -1,5 +1,6 @@
 "use client";
 
+import type { TextMessage } from "@syncpad/shared";
 import { useSearchParams } from "next/navigation";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
@@ -12,7 +13,6 @@ import { useHostname } from "@/hooks/useHostname";
 import { useScratchpadSocket } from "@/hooks/useScratchpadSocket";
 import { downloadFile } from "@/lib/downloadFile";
 import { isValidRoomId } from "@/lib/roomId";
-import type { TextMessage } from "@/lib/types";
 
 // biome-ignore lint/style/noDefaultExport: Next.js requires a default export for pages.
 export default function RoomPage() {
@@ -117,7 +117,7 @@ export default function RoomPage() {
                     <Header buttons={button}>
                         {roomId && (
                             <p className="text-sm text-orange-600 dark:text-orange-400">
-                                Room: <strong>{roomId}</strong>
+                                Room: <strong data-testid="roomid">{roomId}</strong>
                             </p>
                         )}
                     </Header>

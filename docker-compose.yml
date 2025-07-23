@@ -12,7 +12,7 @@ services:
             context: .
             dockerfile: ./apps/frontend/Dockerfile
         ports:
-            - "${HOST_FRONTEND_PORT:-3000}:3000"
+            - "${HOST_FRONTEND_PORT:-80}:80"
         environment:
             # The frontend code needs to know which host port to connect to for the WebSocket. We pass the HOST port variable here.
             - NEXT_PUBLIC_WEBSOCKET_PORT=${HOST_BACKEND_PORT:-8080}

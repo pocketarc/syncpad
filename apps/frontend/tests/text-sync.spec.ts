@@ -32,17 +32,13 @@ test.describe("Text Synchronization", () => {
 
         // Wait for it to sync to client 2
         const textarea2 = page2.locator("textarea");
-        await page2.waitForFunction(() => document.querySelector("textarea")?.value === "Hello from client 1!", {
-            timeout: 10000,
-        });
+        await page2.waitForFunction(() => document.querySelector("textarea")?.value === "Hello from client 1!");
 
         // Type text in client 2
         await textarea2.fill("Reply from client 2!");
 
         // Wait for it to sync back to client 1
-        await page1.waitForFunction(() => document.querySelector("textarea")?.value === "Reply from client 2!", {
-            timeout: 10000,
-        });
+        await page1.waitForFunction(() => document.querySelector("textarea")?.value === "Reply from client 2!");
 
         await context1.close();
         await context2.close();
@@ -136,19 +132,15 @@ test.describe("Text Synchronization", () => {
 
         // Start with some initial text
         await textarea1.fill("Initial text content");
-        await page2.waitForFunction(() => document.querySelector("textarea")?.value === "Initial text content", {
-            timeout: 10000,
-        });
+        await page2.waitForFunction(() => document.querySelector("textarea")?.value === "Initial text content");
 
         // Replace with completely different text
         await textarea1.fill("Completely replaced content");
-        await page2.waitForFunction(() => document.querySelector("textarea")?.value === "Completely replaced content", {
-            timeout: 10000,
-        });
+        await page2.waitForFunction(() => document.querySelector("textarea")?.value === "Completely replaced content");
 
         // Replace with shorter text
         await textarea2.fill("Short");
-        await page1.waitForFunction(() => document.querySelector("textarea")?.value === "Short", { timeout: 10000 });
+        await page1.waitForFunction(() => document.querySelector("textarea")?.value === "Short");
 
         // Replace with longer text
         await textarea1.fill(
@@ -157,19 +149,16 @@ test.describe("Text Synchronization", () => {
         await page2.waitForFunction(
             () =>
                 document.querySelector("textarea")?.value ===
-                "This is a much longer piece of text that should completely replace the previous short text",
-            { timeout: 10000 },
+                "This is a much longer piece of text that should completely replace the previous short text"
         );
 
         // Replace with empty text
         await textarea2.fill("");
-        await page1.waitForFunction(() => document.querySelector("textarea")?.value === "", { timeout: 10000 });
+        await page1.waitForFunction(() => document.querySelector("textarea")?.value === "");
 
         // Add text back after empty
         await textarea1.fill("Back to text after empty");
-        await page2.waitForFunction(() => document.querySelector("textarea")?.value === "Back to text after empty", {
-            timeout: 10000,
-        });
+        await page2.waitForFunction(() => document.querySelector("textarea")?.value === "Back to text after empty");
 
         await context1.close();
         await context2.close();

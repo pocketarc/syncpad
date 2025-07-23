@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
 
 # Copy package files.
 COPY package.json bun.lock ./
+COPY packages/shared/package.json ./packages/shared/
 COPY apps/backend/package.json ./apps/backend/
 COPY apps/frontend/package.json ./apps/frontend/
 
@@ -18,10 +19,11 @@ RUN /root/.bun/bin/bun install
 
 # Copy frontend source (including tests).
 COPY apps/frontend ./apps/frontend
+COPY packages/shared/src ./packages/shared/src
 
 # Set environment variables for Playwright
 ENV CI=true
-ENV PLAYWRIGHT_BASE_URL=http://frontend:3000
+ENV PLAYWRIGHT_BASE_URL=http://frontend:80
 
 # Run the tests.
 CMD ["/root/.bun/bin/bun", "--cwd", "apps/frontend", "test"]

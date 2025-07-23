@@ -12,10 +12,10 @@
         "test:ui": "playwright test --ui",
         "test:debug": "playwright test --debug",
         "test:mobile": "playwright test --grep @mobile",
-        "test:video": "playwright test --project=chromium-video --config=playwright.video.config.ts",
         "test:headed": "playwright test --headed"
     },
     "dependencies": {
+        "@syncpad/shared": "workspace:*",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "next": "15.3.4"

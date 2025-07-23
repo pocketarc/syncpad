@@ -24,7 +24,7 @@ SyncPad employs a simple client-server architecture composed of two primary serv
 +--------------------------------+
 |       User (Browser Tab)       |
 |  [ Frontend - Next.js App ]    |
-|       (localhost:3050)         |
+|         (localhost:3050)       |
 +--------------------------------+
            ^      | (WebSocket)
            |      v
@@ -38,7 +38,7 @@ SyncPad employs a simple client-server architecture composed of two primary serv
 +--------------------------------+
 |   Another User (Browser Tab)   |
 |  [ Frontend - Next.js App ]    |
-|       (localhost:3050)         |
+|         (localhost:3050)       |
 +--------------------------------+
 ```
 
@@ -51,6 +51,7 @@ SyncPad employs a simple client-server architecture composed of two primary serv
 -   **Backend:** **Bun's native WebSocket API**, which is built on uWebSockets for high performance.
 -   **Frontend:** **Next.js 15** (with Turbopack) and **React 19**.
 -   **Styling:** **Tailwind CSS 4**.
+-   **Web Server:** **Nginx** serves the frontend in containerized environments.
 -   **Monorepo Management:** **Turbo** for orchestrating build, development, and linting tasks.
 -   **Containerization**: **Docker** with Docker Compose for local development and CI.
 -   **End-to-End Testing:** **Playwright** for comprehensive, multi-browser testing of the application's core synchronization features.
@@ -68,6 +69,7 @@ This contains the Bun WebSocket server.
 
 This contains the Next.js client application.
 
+-   `nginx.conf`: Nginx configuration for serving the static frontend build.
 -   `src/app/`: The core application code following the Next.js App Router paradigm.
     -   `layout.tsx`: The root layout, setting up fonts and global styles.
     -   `page.tsx`: The root page that automatically redirects to a new room with a generated room ID.
@@ -99,7 +101,6 @@ This contains the Next.js client application.
     -   `no-self-download.spec.ts`: Ensures a user who uploads a file does not receive a download prompt for their own file.
     -   `share-room-feedback.spec.ts`: Verifies the "Copy" button provides user feedback on success or failure.
 -   `playwright.config.ts`: The main Playwright configuration, which defines projects for different browsers and includes the crucial `webServer` option to automatically launch the dev environment for testing.
--   `playwright.video.config.ts`: A separate Playwright configuration for recording video of test runs.
 
 ### 4.3. `apps/playwright`
 -   `Dockerfile`: A dedicated Dockerfile for running Playwright tests in a containerized CI environment.
@@ -188,9 +189,15 @@ The core of the synchronization logic relies on Bun's built-in pub/sub capabilit
 
 The Playwright test suite is configured to automatically launch the necessary `webServer` instances. You do not need to have `turbo dev` running to execute the tests.
 
--   **Run all tests headlessly:**
+-   **Run all tests headlessly (requires local Bun setup):**
     ```bash
     bun --cwd apps/frontend test
+    ```
+
+-   **Run all tests in a self-contained Docker environment (recommended for CI):**
+    This command automatically rebuilds the Docker images if needed, ensuring tests always run against the latest code and dependencies.
+    ```bash
+    docker-compose -f docker-compose.ci.yml up --build --remove-orphans --exit-code-from playwright --abort-on-container-exit
     ```
 
 ### 6.2. Test-Driven Development Guidelines
@@ -234,9 +241,18 @@ To consider a task complete, ensure the following:
 -   [ ] **CLAUDE.md is updated**: Review this document and update it with any relevant changes or new concepts introduced.
 -   [ ] **Write up a git commit message**: Clearly describe what was done, why, and any relevant context. No need to actually commit, just tell us what you would write.
 
+### 6.4. Code Style Guidelines
+
+- Never use `as` or `any` in TypeScript. Prefer type guards or type assertions.
+- In tests, don't wait for specific amounts of time (e.g., `await page.waitForTimeout(1000)`). Instead, use Playwright's built-in waiting mechanisms like `page.waitForSelector()` or `page.waitForResponse()`.
+- In tests, avoid brittle selectors. Use `data-testid` attributes for stable element selection.
+- When things don't work as expected, use `console.log()` to debug and understand the state of your application. This is often more effective than trying to guess what might be wrong.
+
 ## 7. Configuration (Environment Variables)
 
-| Variable | Workspace | Purpose | Default |
-| :--- | :--- | :--- | :--- |
-| `WEBSOCKET_PORT` | `backend` | The port on which the Bun WebSocket server will listen. | `8080` |
-| `NEXT_PUBLIC_WEBSOCKET_PORT` | `frontend` | The port the client should connect to. Must match the backend's `WEBSOCKET_PORT`. | `8080` |
+| Variable                     | Workspace  | Purpose                                                                                                                           | Default             |
+|:-----------------------------|:-----------|:----------------------------------------------------------------------------------------------------------------------------------|:--------------------|
+| `WEBSOCKET_PORT`             | `backend`  | The port on which the Bun WebSocket server will listen.                                                                           | `8080`              |
+| `NEXT_PUBLIC_WEBSOCKET_PORT` | `frontend` | The port the client should connect to when running in a local, non-Docker environment. Must match the backend's `WEBSOCKET_PORT`. | `8080`              |
+| `NEXT_PUBLIC_WEBSOCKET_URI`  | `frontend` | The full WebSocket URI the client should connect to. This is used in the CI environment to connect to the `backend` service.      | `ws://backend:8080` |
+
