@@ -12,7 +12,7 @@ import { StatusBar } from "@/components/StatusBar";
 import { useHostname } from "@/hooks/useHostname";
 import { useScratchpadSocket } from "@/hooks/useScratchpadSocket";
 import { downloadFile } from "@/lib/downloadFile";
-import { isValidRoomId } from "@/lib/roomId";
+import { isValidRoomId } from "@syncpad/shared/src/isValidRoomId.ts";
 
 // biome-ignore lint/style/noDefaultExport: Next.js requires a default export for pages.
 export default function RoomPage() {

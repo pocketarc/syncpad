@@ -11,7 +11,7 @@ export function FileDropZone({ onFileDrop, children, disabled = false }: FileDro
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleDrop = useCallback(
-        (e: React.DragEvent<HTMLDivElement>) => {
+        (e: React.DragEvent<HTMLButtonElement>) => {
             e.preventDefault();
             if (disabled) {
                 return;
@@ -24,7 +24,7 @@ export function FileDropZone({ onFileDrop, children, disabled = false }: FileDro
         [onFileDrop, disabled],
     );
 
-    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    const handleDragOver = (e: React.DragEvent<HTMLButtonElement>) => {
         e.preventDefault(); // Necessary to allow dropping.
     };
 
@@ -46,8 +46,16 @@ export function FileDropZone({ onFileDrop, children, disabled = false }: FileDro
         }
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleClick();
+        }
+    };
+
     return (
-        <section
+        <button
+            type="button"
             className={`w-full border-2 border-dashed rounded-lg p-4 transition-colors duration-200 ${
                 disabled
                     ? "border-orange-200 dark:border-stone-600 bg-orange-50 dark:bg-stone-800 cursor-not-allowed"
@@ -56,7 +64,9 @@ export function FileDropZone({ onFileDrop, children, disabled = false }: FileDro
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onClick={handleClick}
+            onKeyDown={handleKeyDown}
             aria-label="File drop zone"
+            disabled={disabled}
         >
             <input
                 ref={fileInputRef}
@@ -66,6 +76,7 @@ export function FileDropZone({ onFileDrop, children, disabled = false }: FileDro
                 onChange={handleFileInputChange}
                 disabled={disabled}
                 aria-hidden="true"
+                tabIndex={-1}
             />
             {children}
             <div
@@ -75,6 +86,6 @@ export function FileDropZone({ onFileDrop, children, disabled = false }: FileDro
                     ? "File uploads disabled while connecting..."
                     : "📁 Tap to select files or drag & drop to sync instantly"}
             </div>
-        </section>
+        </button>
     );
 }

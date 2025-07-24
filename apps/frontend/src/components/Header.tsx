@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { useDarkMode } from "@/hooks/useDarkMode";
 import type React from "react";
+import { useDarkMode } from "@/hooks/useDarkMode";
 
 interface HeaderProps {
     children?: React.ReactNode;

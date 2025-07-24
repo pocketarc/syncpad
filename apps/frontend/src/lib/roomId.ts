@@ -120,20 +120,17 @@ export function generateRoomId(): string {
         if (array.length === 0) {
             throw new Error("Array cannot be empty");
         }
-        return array[Math.floor(Math.random() * array.length)]!;
+
+        const randomRoom = array[Math.floor(Math.random() * array.length)];
+
+        if (!randomRoom) {
+            throw new Error(
+                "This should never happen - the key should always be present in the array. This is here to ensure type safety.",
+            );
+        }
+
+        return randomRoom;
     };
 
     return [getRandomItem(adjectives), getRandomItem(colors), getRandomItem(animals), getRandomItem(nouns)].join("-");
-}
-
-/**
- * Validates if a room ID has the correct format (4 words separated by hyphens)
- */
-export function isValidRoomId(roomId: string): boolean {
-    if (!roomId || typeof roomId !== "string") {
-        return false;
-    }
-
-    const parts = roomId.split("-");
-    return parts.length === 4 && parts.every((part) => part.length > 0);
 }

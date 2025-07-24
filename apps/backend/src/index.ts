@@ -1,7 +1,8 @@
-import { WebSocketMessageSchema } from "@syncpad/shared";
+import { WebSocketConnectionSchema, WebSocketMessageSchema } from "@syncpad/shared/src/types.ts";
 import Bun from "bun";
 import { config as dotenvConfig } from "dotenv";
 import { ZodError } from "zod";
+import { isValidRoomId } from "@syncpad/shared/src/isValidRoomId.ts";
 
 dotenvConfig();
 
@@ -23,18 +24,6 @@ function extractRoomId(url: string): string | null {
     } catch {
         return null;
     }
-}
-
-/**
- * Validates room ID format (4 words separated by hyphens)
- */
-function isValidRoomId(roomId: string): boolean {
-    if (!roomId || typeof roomId !== "string") {
-        return false;
-    }
-
-    const parts = roomId.split("-");
-    return parts.length === 4 && parts.every((part) => part.length > 0);
 }
 
 /**
@@ -65,7 +54,7 @@ function parseMessage(rawMessage: string | Buffer) {
 
 console.log("Starting Bun WebSocket server...");
 
-const server = Bun.serve<{ roomId: string }>({
+const server = Bun.serve({
     port,
 
     // This fetch handler is called for every HTTP request.
@@ -91,7 +80,17 @@ const server = Bun.serve<{ roomId: string }>({
     websocket: {
         // This handler is called when a client connects.
         open(ws) {
-            const { roomId } = ws.data;
+            const parsedData = WebSocketConnectionSchema.safeParse(ws.data);
+
+            if (!parsedData.success) {
+                console.error("Invalid WebSocket connection data:", parsedData.error);
+                ws.close(1008, "Invalid connection data");
+                return;
+            }
+
+            const {
+                data: { roomId },
+            } = parsedData;
             const roomTopic = getRoomTopic(roomId);
 
             console.log(`Client connected to room: ${roomId}`);
@@ -100,7 +99,17 @@ const server = Bun.serve<{ roomId: string }>({
 
         // This handler is called when a client sends a message.
         message(ws, message) {
-            const { roomId } = ws.data;
+            const parsedData = WebSocketConnectionSchema.safeParse(ws.data);
+
+            if (!parsedData.success) {
+                console.error("Invalid WebSocket connection data:", parsedData.error);
+                ws.close(1008, "Invalid connection data");
+                return;
+            }
+
+            const {
+                data: { roomId },
+            } = parsedData;
             const roomTopic = getRoomTopic(roomId);
 
             const parsedMessage = parseMessage(message);
@@ -130,8 +139,16 @@ const server = Bun.serve<{ roomId: string }>({
 
         // This handler is called when a client disconnects.
         close(ws, code, reason) {
-            const { roomId } = ws.data;
-            console.log(`Client disconnected from room ${roomId}`, { code, reason });
+            const parsedData = WebSocketConnectionSchema.safeParse(ws.data);
+
+            if (parsedData.success) {
+                const {
+                    data: { roomId },
+                } = parsedData;
+                console.log(`Client disconnected from room ${roomId}`, { code, reason });
+            }
+
+            // If there was an error parsing the connection data, it doesn't really matter here.
         },
     },
 });

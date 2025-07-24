@@ -1,6 +1,6 @@
-import { expect, test } from "@playwright/test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { expect, test } from "@playwright/test";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -34,9 +34,7 @@ test.describe("Mobile File Upload", () => {
     test("should show proper mobile interface text @mobile", async ({ page, isMobile }) => {
         test.skip(!isMobile, "Mobile-only test");
 
-        const instructionText = page.locator(
-            "text=📁 Tap to select files or drag & drop to sync instantly",
-        );
+        const instructionText = page.locator("text=📁 Tap to select files or drag & drop to sync instantly");
         await expect(instructionText).toBeVisible();
     });
 

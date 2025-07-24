@@ -26,8 +26,8 @@ export default function AboutPage() {
 
                         <p>
                             Each SyncPad session is isolated in its own room with a unique, shareable URL. When you
-                            visit the root URL, you're automatically redirected to a new room with a memorable ID. You
-                            can share this room URL with others to collaborate in real-time.
+                            visit the root URL, you&apos;re automatically redirected to a new room with a memorable ID.
+                            You can share this room URL with others to collaborate in real-time.
                         </p>
 
                         <p>Built with three core goals:</p>
@@ -54,7 +54,7 @@ export default function AboutPage() {
 
                         <p>
                             SyncPad is open source and available on{" "}
-                            <a href="https://github.com/pocketarc/syncpad">GitHub</a>. It's built with{" "}
+                            <a href="https://github.com/pocketarc/syncpad">GitHub</a>. It&apos;s built with{" "}
                             <a href="https://nextjs.org/">Next.js</a>, <a href="https://bun.sh/">Bun</a>, and{" "}
                             <a href="https://tailwindcss.com/">Tailwind CSS</a>.
                         </p>
@@ -62,8 +62,8 @@ export default function AboutPage() {
                         <p>
                             The architecture is simple: a WebSocket server acts as a real-time message broker, streaming
                             data directly between connected clients. Each room uses isolated pub/sub topics to ensure
-                            complete privacy between sessions. No data is stored on the server - it's purely ephemeral
-                            synchronization.
+                            complete privacy between sessions. No data is stored on the server - it&apos;s purely
+                            ephemeral synchronization.
                         </p>
                     </div>
                 </div>

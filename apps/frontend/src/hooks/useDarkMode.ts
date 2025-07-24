@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
 
+function updateTheme(dark: boolean) {
+    if (dark) {
+        document.documentElement.classList.add("dark");
+    } else {
+        document.documentElement.classList.remove("dark");
+    }
+}
+
 export function useDarkMode() {
     const [isDark, setIsDark] = useState(false);
 
@@ -30,14 +38,6 @@ export function useDarkMode() {
         setIsDark(newIsDark);
         localStorage.setItem("theme", newIsDark ? "dark" : "light");
         updateTheme(newIsDark);
-    };
-
-    const updateTheme = (dark: boolean) => {
-        if (dark) {
-            document.documentElement.classList.add("dark");
-        } else {
-            document.documentElement.classList.remove("dark");
-        }
     };
 
     return { isDark, toggleDarkMode };

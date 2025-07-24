@@ -149,7 +149,7 @@ test.describe("Text Synchronization", () => {
         await page2.waitForFunction(
             () =>
                 document.querySelector("textarea")?.value ===
-                "This is a much longer piece of text that should completely replace the previous short text"
+                "This is a much longer piece of text that should completely replace the previous short text",
         );
 
         // Replace with empty text

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import type { WebSocketMessage } from "@syncpad/shared";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type ConnectionStatus = "Connecting" | "Connected" | "Disconnected" | "Error" | "Reconnecting";
 

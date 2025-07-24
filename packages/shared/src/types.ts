@@ -35,9 +35,14 @@ export const WebSocketMessageSchema = z.discriminatedUnion("type", [
     PongMessageSchema,
 ]);
 
+export const WebSocketConnectionSchema = z.object({
+    roomId: z.string(),
+});
+
 export type TextMessage = z.infer<typeof TextMessageSchema>;
 export type FileMessagePayload = z.infer<typeof FileMessagePayloadSchema>;
 export type FileMessage = z.infer<typeof FileMessageSchema>;
 export type PingMessage = z.infer<typeof PingMessageSchema>;
 export type PongMessage = z.infer<typeof PongMessageSchema>;
 export type WebSocketMessage = z.infer<typeof WebSocketMessageSchema>;
+export type WebSocketConnection = z.infer<typeof WebSocketConnectionSchema>;
