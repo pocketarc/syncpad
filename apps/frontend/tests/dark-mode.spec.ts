@@ -15,9 +15,6 @@ test.describe("Dark Mode Toggle", () => {
         const toggleButton = page.locator('[aria-label*="Switch to"]');
         const initialAriaLabel = await toggleButton.getAttribute("aria-label");
 
-        console.log("Initial dark class:", initialHasDark);
-        console.log("Initial aria-label:", initialAriaLabel);
-
         // Click the toggle button
         await toggleButton.click();
 
@@ -27,9 +24,6 @@ test.describe("Dark Mode Toggle", () => {
         // Check if the class was toggled
         const afterToggleHasDark = await html.evaluate((el) => el.classList.contains("dark"));
         const afterToggleAriaLabel = await toggleButton.getAttribute("aria-label");
-
-        console.log("After toggle dark class:", afterToggleHasDark);
-        console.log("After toggle aria-label:", afterToggleAriaLabel);
 
         // The dark class should be opposite of initial state
         expect(afterToggleHasDark).toBe(!initialHasDark);
@@ -59,7 +53,7 @@ test.describe("Dark Mode Toggle", () => {
 
         // Check if localStorage was updated
         const themeValue = await page.evaluate(() => localStorage.getItem("theme"));
-        console.log("Theme in localStorage:", themeValue);
+        expect(themeValue).toBe("dark");
 
         // Reload the page to test persistence
         await page.reload();
@@ -68,8 +62,6 @@ test.describe("Dark Mode Toggle", () => {
         // Check if dark mode is still active after reload
         const html = page.locator("html");
         const hasDarkAfterReload = await html.evaluate((el) => el.classList.contains("dark"));
-
-        console.log("Has dark class after reload:", hasDarkAfterReload);
 
         // Should maintain dark mode after reload
         expect(hasDarkAfterReload).toBe(true);

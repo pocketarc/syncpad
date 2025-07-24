@@ -34,18 +34,15 @@ test.describe("File Upload - No Self Download", () => {
         const downloadPromise = page2.waitForEvent("download");
 
         page1.on("download", (download) => {
-            console.log("Page1 download:", download.suggestedFilename());
             page1Downloads.push(download.suggestedFilename());
         });
 
         page2.on("download", (download) => {
-            console.log("Page2 download:", download.suggestedFilename());
             page2Downloads.push(download.suggestedFilename());
         });
 
         // Upload file from page1 (sender)
         const fileInput1 = page1.locator('input[type="file"]');
-        console.log("Uploading file from page1:", testFilePath);
         await fileInput1.setInputFiles(testFilePath);
 
         // Wait for the file to be processed

@@ -24,7 +24,8 @@ export default defineConfig({
     testDir: "./tests",
     fullyParallel: true,
     forbidOnly: !!process.env["CI"],
-    retries: 0,
+    failOnFlakyTests: true,
+    retries: 2,
     maxFailures: 3,
     reporter: [[process.env["CI"] ? "github" : "list"], ["html", { open: "never" }]],
     reportSlowTests: {

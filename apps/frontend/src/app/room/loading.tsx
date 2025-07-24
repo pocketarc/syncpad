@@ -1,7 +1,7 @@
 "use client";
 
-import { Header } from "@/components/Header.tsx";
 import { Footer } from "@/components/Footer.tsx";
+import { Header } from "@/components/Header.tsx";
 
 // biome-ignore lint/style/noDefaultExport: Next.js requires a default export for pages.
 export default function Loading() {

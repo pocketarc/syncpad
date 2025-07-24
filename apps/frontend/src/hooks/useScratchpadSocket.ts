@@ -1,4 +1,4 @@
-import type { WebSocketMessage } from "@syncpad/shared";
+import type { WebSocketMessage, Participant } from "@syncpad/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type ConnectionStatus = "Connecting" | "Connected" | "Disconnected" | "Error" | "Reconnecting";
@@ -12,6 +12,7 @@ const MAX_RECONNECT_ATTEMPTS = Number.POSITIVE_INFINITY; // Reconnect infinitely
 export function useScratchpadSocket(url: string | null) {
     const [status, setStatus] = useState<ConnectionStatus>("Connecting");
     const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
+    const [participants, setParticipants] = useState<Participant[]>([]);
     const ws = useRef<WebSocket | null>(null);
     const pingInterval = useRef<NodeJS.Timeout | null>(null);
     const pongTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -141,9 +142,37 @@ export function useScratchpadSocket(url: string | null) {
                 }
 
                 // Handle other message types - ignore messages we sent ourselves.
-                if (message.messageId && sentMessageIds.current.has(message.messageId)) {
+                // Only text and file messages have messageId
+                if (
+                    (message.type === "text" || message.type === "file") &&
+                    message.messageId &&
+                    sentMessageIds.current.has(message.messageId)
+                ) {
                     // This is a message we sent, ignore it.
                     return;
+                }
+
+                // Handle participant messages immediately to avoid React batching issues
+                switch (message.type) {
+                    case "participant_list":
+                        setParticipants(message.payload.participants);
+                        break;
+
+                    case "participant_joined":
+                        setParticipants((prev) => {
+                            const exists = prev.some((p) => p.id === message.payload.id);
+                            if (exists) {
+                                console.log("Participant already exists, ignoring join message");
+                                return prev;
+                            }
+                            console.log("Adding new participant, total will be:", prev.length + 1);
+                            return [...prev, message.payload];
+                        });
+                        break;
+
+                    case "participant_left":
+                        setParticipants((prev) => prev.filter((p) => p.id !== message.payload.id));
+                        break;
                 }
 
                 setLastMessage(message);
@@ -169,5 +198,5 @@ export function useScratchpadSocket(url: string | null) {
         };
     }, [connect, clearTimers]);
 
-    return { status, lastMessage, sendMessage };
+    return { status, lastMessage, sendMessage, participants };
 }

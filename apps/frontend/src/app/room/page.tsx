@@ -1,18 +1,19 @@
 "use client";
 
 import type { TextMessage } from "@syncpad/shared";
+import { isValidRoomId } from "@syncpad/shared/src/isValidRoomId.ts";
 import { useSearchParams } from "next/navigation";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { FileDropZone } from "@/components/FileDropZone";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { ParticipantList } from "@/components/ParticipantList";
 import { ScratchpadInput } from "@/components/ScratchpadInput";
 import { StatusBar } from "@/components/StatusBar";
 import { useHostname } from "@/hooks/useHostname";
 import { useScratchpadSocket } from "@/hooks/useScratchpadSocket";
 import { downloadFile } from "@/lib/downloadFile";
-import { isValidRoomId } from "@syncpad/shared/src/isValidRoomId.ts";
 
 // biome-ignore lint/style/noDefaultExport: Next.js requires a default export for pages.
 export default function RoomPage() {
@@ -30,7 +31,7 @@ export default function RoomPage() {
     // Construct WebSocket URL with room ID path
     const wsUrl = hostname && roomId && isValidRoomId(roomId) ? `${websocketUrl}/${roomId}` : null;
 
-    const { status, lastMessage, sendMessage } = useScratchpadSocket(wsUrl);
+    const { status, lastMessage, sendMessage, participants } = useScratchpadSocket(wsUrl);
     const isConnected = status === "Connected";
 
     // Redirect to home if room ID is invalid
@@ -123,6 +124,8 @@ export default function RoomPage() {
                     </Header>
 
                     <StatusBar status={status} />
+
+                    <ParticipantList participants={participants} connectionStatus={status} className="mb-4" />
 
                     <FileDropZone onFileDrop={handleFileDrop} disabled={!isConnected}>
                         <ScratchpadInput value={text} onChange={handleTextChange} disabled={!isConnected} />
