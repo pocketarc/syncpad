@@ -197,7 +197,7 @@ The Playwright test suite is configured to automatically launch the necessary `w
 -   **Run all tests in a self-contained Docker environment (recommended for CI):**
     This command automatically rebuilds the Docker images if needed, ensuring tests always run against the latest code and dependencies.
     ```bash
-    docker-compose -f docker-compose.ci.yml up --build --remove-orphans --exit-code-from playwright --abort-on-container-exit
+    docker compose -f docker-compose.ci.yml up --build --remove-orphans --exit-code-from playwright --abort-on-container-exit
     ```
 
 ### 6.2. Test-Driven Development Guidelines
