@@ -81,9 +81,10 @@ This contains the Next.js client application.
     -   `FileDropZone.tsx`: A wrapper component that handles both drag-and-drop events and click-to-upload functionality.
     -   `ScratchpadInput.tsx`: The main `<textarea>` for text entry.
     -   `StatusBar.tsx`: A simple component to display the WebSocket connection status, including a `data-testid="status-bar"` for testing.
+    -   `ParticipantList.tsx`: Displays real-time participant count with country flags and browser icons. Shows detailed view on desktop and simplified view on mobile.
 -   `src/hooks/`: Reusable logic encapsulated in custom React hooks.
     -   `useHostname.ts`: A client-side hook to safely get the `window.location.hostname` for constructing the WebSocket URL. This is critical for making the app work on any network without hardcoding `localhost`.
-    -   `useScratchpadSocket.ts`: **The most important frontend hook.** It manages the entire WebSocket lifecycle: connection, event listeners (`onopen`, `onmessage`, etc.), state management (`status`, `lastMessage`), and provides a `sendMessage` function.
+    -   `useScratchpadSocket.ts`: **The most important frontend hook.** It manages the entire WebSocket lifecycle: connection, event listeners (`onopen`, `onmessage`, etc.), state management (`status`, `lastMessage`, `participants`), and provides a `sendMessage` function. Also handles real-time participant tracking.
     -   `useDarkMode.ts`: Manages the dark mode state and persists the user's preference in `localStorage`.
 -   `src/lib/`: Shared utilities and type definitions.
     -   `types.ts`: Defines the TypeScript types for the WebSocket message protocol. **This is the contract between the frontend and backend.**
@@ -100,6 +101,7 @@ This contains the Next.js client application.
     -   `dark-mode.spec.ts`: Tests the dark mode toggle functionality.
     -   `no-self-download.spec.ts`: Ensures a user who uploads a file does not receive a download prompt for their own file.
     -   `share-room-feedback.spec.ts`: Verifies the "Copy" button provides user feedback on success or failure.
+    -   `participant-list.spec.ts`: Tests the real-time participant list functionality, including multi-client scenarios, room isolation, and responsive design.
 -   `playwright.config.ts`: The main Playwright configuration, which defines projects for different browsers and includes the crucial `webServer` option to automatically launch the dev environment for testing.
 
 ### 4.3. `apps/playwright`
@@ -130,6 +132,43 @@ All communication between the client and server uses a simple JSON-based message
         "name": "document.pdf",
         "type": "application/pdf",
         "data": "data:application/pdf;base64,JVBERi0xLjQKJ..."
+      }
+    }
+    ```
+-   **Participant List Message:**
+    ```json
+    {
+      "type": "participant_list",
+      "payload": {
+        "participants": [
+          {
+            "id": "participant_1753368710471_4o303op",
+            "country": "US",
+            "userAgent": "Mozilla/5.0...",
+            "connectedAt": "2025-01-24T12:30:00Z"
+          }
+        ]
+      }
+    }
+    ```
+-   **Participant Joined Message:**
+    ```json
+    {
+      "type": "participant_joined",
+      "payload": {
+        "id": "participant_1753368712219_dbzhpdx",
+        "country": "GB",
+        "userAgent": "Mozilla/5.0...",
+        "connectedAt": "2025-01-24T12:30:02Z"
+      }
+    }
+    ```
+-   **Participant Left Message:**
+    ```json
+    {
+      "type": "participant_left",
+      "payload": {
+        "id": "participant_1753368712219_dbzhpdx"
       }
     }
     ```
@@ -170,7 +209,18 @@ The core of the synchronization logic relies on Bun's built-in pub/sub capabilit
 5.  **Receive Message:** All other clients in the same room receive the `FileMessage`. The `useEffect` in `room/page.tsx` detects the message type.
 6.  **Trigger Download:** It calls the `downloadFile` utility, which decodes the base64 data into a `Blob`, creates an invisible `<a>` tag with a `download` attribute, programmatically clicks it, and removes it from the DOM. This securely triggers a native browser download prompt.
 
-### 5.6. Room Usage
+### 5.6. Data Flow: Participant Tracking
+
+1.  **Client Connection:** When a client connects, the backend extracts IP address and User-Agent from the HTTP request during WebSocket upgrade.
+2.  **Geolocation Lookup:** The server first checks for Cloudflare's `CF-IPCountry` header, then falls back to IP-API.com for country detection.
+3.  **Participant Creation:** A unique participant object is created with ID, country, user-agent, and connection timestamp.
+4.  **Room Registration:** The participant is added to the room's participant map and the client subscribes to the room topic.
+5.  **Initial Sync:** The new client receives a `participant_list` message with all current participants.
+6.  **Join Broadcast:** A `participant_joined` message is broadcast to all other clients in the room.
+7.  **Real-time Updates:** The frontend processes these messages immediately to avoid React batching issues.
+8.  **Leave Handling:** When a client disconnects, a `participant_left` message is broadcast and the participant is removed from tracking.
+
+### 5.7. Room Usage
 
 ***For Users:**
 - Visit the root URL (`/`) to automatically create a new room

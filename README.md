@@ -18,7 +18,7 @@ A lightweight, browser-based scratchpad that instantly syncs text & files betwee
 
 SyncPad stops all that. It exists only in your browser tab and works instantly across any device on your network. No accounts, no data mining, no third-parties, just a pure utility.
 
-Because god damn, not everything needs to be monetized.
+Because _god damn_, not everything needs to be monetized.
 
 ## ✨ Features
 
@@ -26,6 +26,7 @@ Because god damn, not everything needs to be monetized.
 - Memorable room URLs like `/room?id=brave-coral-eagle-castle` that you can share with others.
 - Real-time synchronization of text and files across all connected devices in the same room.
 - Complete room isolation - each session is private and separate from others.
+- Live participant list - See who's connected with country flags and browser icons for instant trust verification.
 - Drag and drop support for file sharing.
 - Privacy-focused: Your data is not stored on any server, it stays between your devices.
 
