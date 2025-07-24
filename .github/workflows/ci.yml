@@ -20,7 +20,7 @@ jobs:
               uses: docker/setup-buildx-action@v3
 
             - name: "Build and Run Services"
-              run: docker-compose -f docker-compose.ci.yml build
+              run: docker compose -f docker-compose.ci.yml build
 
             - name: "Run Playwright Tests"
               run: |
@@ -28,7 +28,7 @@ jobs:
                   # It then propagates the exit code from 'playwright'. If tests fail (non-zero exit code),
                   # this step will fail, causing the entire workflow to fail.
                   # It also automatically shuts down all services afterwards.
-                  docker-compose -f docker-compose.ci.yml up --exit-code-from playwright --abort-on-container-exit
+                  docker compose -f docker-compose.ci.yml up --remove-orphans --exit-code-from playwright --abort-on-container-exit
 
             - name: "Upload Playwright Report"
                 # This step runs even if the tests fail, so you can always see the report.
