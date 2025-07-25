@@ -1,6 +1,6 @@
-import type { FileMessagePayload } from "@syncpad/shared";
+import type { FilePayload } from "@syncpad/shared/src/types.ts";
 
-export function downloadFile(payload: FileMessagePayload) {
+export function downloadFile(payload: FilePayload) {
     try {
         const splitBase64 = payload.data.split(",");
 

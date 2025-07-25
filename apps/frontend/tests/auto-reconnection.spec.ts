@@ -6,7 +6,7 @@ test.describe("Auto-reconnection functionality", () => {
         const controller = await WebsocketController.interceptWebSocket(page);
 
         // Navigate to the application and wait for connection
-        await page.goto("/room?id=test-blue-cat-moon");
+        await page.goto("/room#test-blue-cat-moon");
         await expect(page.getByTestId("status-bar")).toContainText("Live sync active");
 
         // Enable blocking and force a reconnection attempt

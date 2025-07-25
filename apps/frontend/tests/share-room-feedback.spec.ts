@@ -18,7 +18,7 @@ test.describe("Share Room Button Feedback", () => {
         });
 
         // Visit a test room
-        await page.goto("/room?id=test-blue-cat-moon");
+        await page.goto("/room#test-blue-cat-moon");
 
         // Wait for the page to load and WebSocket to connect
         await expect(page.getByTestId("status-bar")).toContainText("Live sync active");
@@ -37,7 +37,7 @@ test.describe("Share Room Button Feedback", () => {
 
         // Verify the URL was "copied" to our mock clipboard
         const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
-        expect(clipboardText).toContain("/room?id=test-blue-cat-moon");
+        expect(clipboardText).toContain("/room#test-blue-cat-moon");
 
         // Wait for button to return to original state (2 second timeout)
         await expect(shareButton).toContainText("📋 Share Room", { timeout: 3000 });
@@ -51,7 +51,7 @@ test.describe("Share Room Button Feedback", () => {
         }
 
         // Visit a test room
-        await page.goto("/room?id=test-blue-cat-moon");
+        await page.goto("/room#test-blue-cat-moon");
 
         // Wait for the page to load and WebSocket to connect
         await expect(page.getByTestId("status-bar")).toContainText("Live sync active");

@@ -14,7 +14,7 @@ test.describe("Text Synchronization", () => {
         const timestamp = Date.now().toString(36);
         const roomId = `test-${browserName}-${testInfo.workerIndex}-${timestamp}`;
 
-        await Promise.all([page1.goto(`/room?id=${roomId}`), page2.goto(`/room?id=${roomId}`)]);
+        await Promise.all([page1.goto(`/room#${roomId}`), page2.goto(`/room#${roomId}`)]);
 
         // Wait for both pages to be connected
         await Promise.all([
@@ -58,9 +58,9 @@ test.describe("Text Synchronization", () => {
         const roomId = `test-${browserName}-${testInfo.workerIndex}-${timestamp}`;
 
         await Promise.all([
-            page1.goto(`/room?id=${roomId}`),
-            page2.goto(`/room?id=${roomId}`),
-            page3.goto(`/room?id=${roomId}`),
+            page1.goto(`/room#${roomId}`),
+            page2.goto(`/room#${roomId}`),
+            page3.goto(`/room#${roomId}`),
         ]);
 
         // Wait for all connections
@@ -116,7 +116,7 @@ test.describe("Text Synchronization", () => {
         const timestamp = Date.now().toString(36);
         const roomId = `test-${browserName}-${testInfo.workerIndex}-${timestamp}`;
 
-        await Promise.all([page1.goto(`/room?id=${roomId}`), page2.goto(`/room?id=${roomId}`)]);
+        await Promise.all([page1.goto(`/room#${roomId}`), page2.goto(`/room#${roomId}`)]);
 
         await Promise.all([
             expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),

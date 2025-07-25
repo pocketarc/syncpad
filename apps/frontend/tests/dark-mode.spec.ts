@@ -64,6 +64,7 @@ test.describe("Dark Mode Toggle", () => {
         // Reload the page to test persistence
         await page.reload();
         await page.waitForSelector('[aria-label*="Switch to"]');
+        await page.waitForTimeout(100);
 
         // Check if dark mode is still active after reload
         const html = page.locator("html");
