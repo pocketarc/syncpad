@@ -164,11 +164,7 @@ test.describe("Room Functionality", () => {
         // Click the share button
         await page.click("button:has-text('📋 Share Room')");
 
-        // Wait a moment for clipboard operation
-        await page.waitForTimeout(100);
-
-        // Verify clipboard contains the room URL
-        const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
-        expect(clipboardText).toBe(roomUrl);
+        // Verify the clipboard contains the room URL by polling.
+        await expect.poll(async () => page.evaluate(() => navigator.clipboard.readText())).toBe(roomUrl);
     });
 });

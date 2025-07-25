@@ -21,13 +21,14 @@ test.describe("File Upload", () => {
         const fileInput = page.locator('input[type="file"]');
         await fileInput.setInputFiles(filePath);
 
-        // Wait for file to be processed and message sent
-        await page.waitForTimeout(1000);
-
         // Verify the file upload was successful by checking for any file-related activity
-        // Since this is real-time sync, we can't easily assert on the exact state
+        // Since this is real-time sync, we can't easily assert on the exact state,
         // but we can verify the input was properly handled
-        expect(await fileInput.inputValue()).toBe("");
+        await expect
+            .poll(async () => {
+                return await fileInput.inputValue();
+            })
+            .toBe("");
     });
 
     test("should upload multiple files via click", async ({ page }) => {
@@ -40,8 +41,6 @@ test.describe("File Upload", () => {
 
         const fileInput = page.locator('input[type="file"]');
         await fileInput.setInputFiles(filePaths);
-
-        await page.waitForTimeout(1000);
 
         // Verify input was reset
         expect(await fileInput.inputValue()).toBe("");
@@ -56,8 +55,6 @@ test.describe("File Upload", () => {
         // Use setInputFiles which works more reliably than simulating drag/drop
         const fileInput = page.locator('input[type="file"]');
         await fileInput.setInputFiles(filePath);
-
-        await page.waitForTimeout(1000);
 
         // Verify input was reset
         expect(await fileInput.inputValue()).toBe("");

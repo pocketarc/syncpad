@@ -41,6 +41,7 @@ export default function RoomPage() {
 
     const [text, setText] = useState("");
     const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
+    const [decryptionError, setDecryptionError] = useState<string | null>(null);
 
     // On component mount, extract the secret from the URL fragment.
     useEffect(() => {
@@ -93,6 +94,7 @@ export default function RoomPage() {
             // The entire payload is now an encrypted string. We must decrypt it first.
             decrypt(lastMessage.payload as string)
                 .then((decryptedPayload) => {
+                    setDecryptionError(null); // Clear any previous error
                     const payload = JSON.parse(decryptedPayload);
                     if (lastMessage.type === "text") {
                         setText(payload);
@@ -100,9 +102,12 @@ export default function RoomPage() {
                         downloadFile(payload);
                     }
                 })
-                .catch((error) => {
-                    console.error("Decryption failed:", error);
-                    // Handle decryption error, e.g., show a notification
+                .catch(() => {
+                    // Do not log the specific error to the console.
+                    // Set a user-facing error state instead.
+                    setDecryptionError(
+                        "Could not decrypt an incoming message. The sender may be using a different room secret.",
+                    );
                 });
         }
     }, [lastMessage, isCryptoReady, decrypt]);
@@ -180,7 +185,7 @@ export default function RoomPage() {
                         )}
                     </Header>
 
-                    <StatusBar status={status} />
+                    <StatusBar status={status} error={decryptionError} />
 
                     <FileDropZone onFileDrop={handleFileDrop} disabled={!isConnected}>
                         <ScratchpadInput value={text} onChange={handleTextChange} disabled={!isConnected} />

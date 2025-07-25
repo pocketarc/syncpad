@@ -24,9 +24,6 @@ test.describe("Mobile File Upload", () => {
         const fileInput = page.locator('input[type="file"]');
         await fileInput.setInputFiles(filePath);
 
-        // Wait for file to be processed
-        await page.waitForTimeout(1000);
-
         // Verify the file upload was successful
         expect(await fileInput.inputValue()).toBe("");
     });
@@ -67,8 +64,6 @@ test.describe("Mobile File Upload", () => {
 
         const fileInput = page.locator('input[type="file"]');
         await fileInput.setInputFiles(filePath);
-
-        await page.waitForTimeout(1000);
 
         // Verify file input was reset
         expect(await fileInput.inputValue()).toBe("");

@@ -19,6 +19,7 @@ export function useScratchpadSocket(url: string | null) {
     const reconnectAttempts = useRef(0);
     const shouldReconnect = useRef(true);
     const sentMessageIds = useRef<Set<string>>(new Set());
+    const receivedMessageIds = useRef<Set<string>>(new Set());
 
     const clearTimers = useCallback(() => {
         if (pingInterval.current) {
@@ -141,10 +142,28 @@ export function useScratchpadSocket(url: string | null) {
                     return;
                 }
 
-                // Handle other message types - ignore messages we sent ourselves.
+                // Ignore messages we sent ourselves.
                 if (message.messageId && sentMessageIds.current.has(message.messageId)) {
-                    // This is a message we sent, ignore it.
                     return;
+                }
+
+                // **Replay Attack Prevention**
+                // If we have seen this message ID before, discard it.
+                if (message.messageId && receivedMessageIds.current.has(message.messageId)) {
+                    console.warn("Replay attack detected. Discarding message:", message.messageId);
+                    return;
+                }
+
+                // Track the new message ID.
+                if (message.messageId) {
+                    receivedMessageIds.current.add(message.messageId);
+
+                    // Clean up old received message IDs to prevent memory leaks.
+                    if (receivedMessageIds.current.size > 100) {
+                        const ids = Array.from(receivedMessageIds.current);
+                        receivedMessageIds.current.clear();
+                        ids.slice(-50).forEach((id) => receivedMessageIds.current.add(id));
+                    }
                 }
 
                 setLastMessage(message);
