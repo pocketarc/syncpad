@@ -105,9 +105,7 @@ export default function RoomPage() {
                 .catch(() => {
                     // Do not log the specific error to the console.
                     // Set a user-facing error state instead.
-                    setError(
-                        "Could not decrypt an incoming message. The sender may be using a different room secret.",
-                    );
+                    setError("Could not decrypt an incoming message. The sender may be using a different room secret.");
                 });
         }
     }, [lastMessage, isCryptoReady, decrypt]);
