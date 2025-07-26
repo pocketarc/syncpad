@@ -75,8 +75,9 @@ test.describe("Disabled Input Functionality (with network interception)", () => 
         await expect(textarea).not.toHaveClass(/bg-stone-100/);
         await expect(textarea).not.toHaveClass(/cursor-not-allowed/);
 
-        const dropZone = page.locator('[aria-label="File drop zone"]');
-        await expect(dropZone).toHaveClass(/cursor-pointer/);
+        const dropZone = page.locator("fieldset");
         await expect(dropZone).not.toHaveClass(/cursor-not-allowed/);
+        const button = page.locator('[aria-label="File drop zone"]');
+        await expect(button).toHaveClass(/cursor-pointer/);
     });
 });
