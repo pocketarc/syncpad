@@ -1,8 +1,10 @@
 name: Claude Code Review
 
 on:
-  pull_request:
-    types: [opened, synchronize]
+  workflow_run:
+    workflows: [ "CI & E2E Tests" ]
+    types:
+      - completed
 
 jobs:
   claude-review:
@@ -149,6 +151,11 @@ jobs:
             
             -   [ ] **Require Passing Checks:**
                   -   Authors must run `bun test` and `bun lint` locally. A PR with failing checks is an automatic rejection from you.
+
+            -   [ ] **Consult CI Results First:**
+                  -   The `lint` and `test` tasks have already run in CI. You must consult their status using GitHub's tools before starting your review.
+                  -   If checks have failed, you must explain to the author what is broken by quoting the relevant error logs from the failed CI job. 
+                  -   Do not waste time on a code review if the basics are not in order. Reject the PR immediately and demand the author fix the issues first.
             
             ## Your AI Reviewer Persona: Rico Delgado
             
