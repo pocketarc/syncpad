@@ -36,19 +36,11 @@ export function useScratchpadSocket(url: string | null) {
         }
     }, []);
 
-    const sendMessage = useCallback((message: MessageWithoutId) => {
+    const sendMessage = useCallback((message: Message) => {
         if (ws.current?.readyState === WebSocket.OPEN) {
-            // Generate a unique message ID and track it.
-            const messageId = crypto.randomUUID();
-            const messageWithId = {
-                ...message,
-                messageId,
-            };
-
-            if (!["ping", "pong"].includes(messageWithId.type)) {
+            if (!["ping", "pong"].includes(message.type)) {
                 // Track this message ID so we can ignore it when it comes back.
-                // We don't track ping/pong messages since they are not sent by the user.
-                sentMessageIds.current.add(messageId);
+                sentMessageIds.current.add(message.messageId);
 
                 // Clean up old message IDs to prevent memory leaks.
                 if (sentMessageIds.current.size > 100) {
@@ -58,7 +50,7 @@ export function useScratchpadSocket(url: string | null) {
                 }
             }
 
-            ws.current.send(JSON.stringify(messageWithId));
+            ws.current.send(JSON.stringify(message));
         } else {
             console.error("WebSocket is not connected. Current state:", ws.current?.readyState);
         }
@@ -66,7 +58,7 @@ export function useScratchpadSocket(url: string | null) {
 
     const sendPing = useCallback(() => {
         if (ws.current?.readyState === WebSocket.OPEN) {
-            sendMessage({ type: "ping", payload: null });
+            sendMessage({ type: "ping", payload: null, messageId: crypto.randomUUID() });
 
             // Set timeout to wait for pong
             pongTimeout.current = setTimeout(() => {
@@ -138,7 +130,7 @@ export function useScratchpadSocket(url: string | null) {
 
                 // Handle ping (respond with pong)
                 if (message.type === "ping") {
-                    sendMessage({ type: "pong", payload: null });
+                    sendMessage({ type: "pong", payload: null, messageId: crypto.randomUUID() });
                     return;
                 }
 

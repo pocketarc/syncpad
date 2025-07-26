@@ -1,6 +1,6 @@
 "use client";
 
-import type { ClientFileMessage, ClientMessage, ClientTextMessage, Message } from "@syncpad/shared";
+import type { ClientFileMessage, ClientMessage, Message } from "@syncpad/shared";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
@@ -12,6 +12,7 @@ import { StatusBar } from "@/components/StatusBar";
 import { useCrypto } from "@/hooks/useCrypto";
 import { useHostname } from "@/hooks/useHostname";
 import { useScratchpadSocket } from "@/hooks/useScratchpadSocket";
+import { useYjs } from "@/hooks/useYjs";
 import { downloadFile } from "@/lib/downloadFile";
 
 /**
@@ -39,7 +40,6 @@ export default function RoomPage() {
     const defaultWebSocketUrl = `ws://${hostname}:${port}`;
     const websocketUrl = process.env["NEXT_PUBLIC_WEBSOCKET_URI"] ?? defaultWebSocketUrl;
 
-    const [text, setText] = useState("");
     const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
     const [error, setError] = useState<string | null>(null);
 
@@ -74,7 +74,8 @@ export default function RoomPage() {
             }
 
             try {
-                const encryptedPayload = await encrypt(JSON.stringify(message.payload));
+                const payloadString = typeof message.payload === "string" ? message.payload : JSON.stringify(message.payload);
+                const encryptedPayload = await encrypt(payloadString);
                 const encryptedMessage: Message = {
                     type: message.type,
                     payload: encryptedPayload,
@@ -88,23 +89,25 @@ export default function RoomPage() {
         [isCryptoReady, encrypt, sendRawMessage],
     );
 
+    const { text, handleLocalTextChange } = useYjs({
+        sendMessage,
+        lastMessage,
+        isConnected,
+        decrypt,
+    });
+
     // Effect to handle incoming messages from the WebSocket.
     useEffect(() => {
         if (lastMessage && isCryptoReady) {
-            // The entire payload is now an encrypted string. We must decrypt it first.
             decrypt(lastMessage.payload as string)
                 .then((decryptedPayload) => {
-                    setError(null); // Clear any previous error
-                    const payload = JSON.parse(decryptedPayload);
-                    if (lastMessage.type === "text") {
-                        setText(payload);
-                    } else if (lastMessage.type === "file") {
+                    setError(null);
+                    if (lastMessage.type === "file") {
+                        const payload = JSON.parse(decryptedPayload);
                         downloadFile(payload);
                     }
                 })
                 .catch(() => {
-                    // Do not log the specific error to the console.
-                    // Set a user-facing error state instead.
                     setError(
                         "Could not decrypt an incoming message. The sender may be using a different room secret.",
                     );
@@ -114,12 +117,9 @@ export default function RoomPage() {
 
     const handleTextChange = useCallback(
         (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-            const newText = e.target.value;
-            setText(newText);
-            const message: ClientTextMessage = { type: "text", payload: newText };
-            sendMessage(message);
+            handleLocalTextChange(e.target.value);
         },
-        [sendMessage],
+        [handleLocalTextChange],
     );
 
     const handleFileDrop = useCallback(
@@ -148,7 +148,6 @@ export default function RoomPage() {
     const handleCopyRoomUrl = useCallback(async () => {
         if (typeof window !== "undefined" && secret) {
             try {
-                // The URL to share is the one with the secret in the fragment.
                 const roomUrl = `${window.location.origin}/room#${secret}`;
                 await navigator.clipboard.writeText(roomUrl);
                 setCopyStatus("copied");
