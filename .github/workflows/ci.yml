@@ -7,6 +7,21 @@ on:
         branches: ["main", "dev"]
 
 jobs:
+    lint:
+        name: Run Linter
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout code
+                uses: actions/checkout@v4
+
+            -   name: Setup Bun
+                uses: oven-sh/setup-bun@v2
+
+            -   name: Install dependencies
+                run: bun install
+
+            -   name: Run linter
+                run: TURBO_TELEMETRY_DISABLED=1 bun run lint
     test:
         name: "Run End-to-End Tests"
         runs-on: ubuntu-latest
