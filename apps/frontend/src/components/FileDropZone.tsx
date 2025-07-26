@@ -11,7 +11,7 @@ export function FileDropZone({ onFileDrop, children, disabled = false }: FileDro
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleDrop = useCallback(
-        (e: React.DragEvent<HTMLFieldSetElement>) => {
+        (e: React.DragEvent<HTMLElement>) => {
             e.preventDefault();
             if (disabled) {
                 return;
@@ -24,7 +24,7 @@ export function FileDropZone({ onFileDrop, children, disabled = false }: FileDro
         [onFileDrop, disabled],
     );
 
-    const handleDragOver = (e: React.DragEvent<HTMLFieldSetElement>) => {
+    const handleDragOver = (e: React.DragEvent<HTMLElement>) => {
         e.preventDefault();
     };
 
@@ -45,13 +45,22 @@ export function FileDropZone({ onFileDrop, children, disabled = false }: FileDro
         }
     };
 
+    const baseClasses = "relative w-full border-2 border-dashed rounded-lg p-4 transition-colors duration-200";
+    const disabledClasses = "border-orange-200 dark:border-stone-600 bg-orange-50 dark:bg-stone-800";
+    const enabledClasses =
+        "border-orange-300 dark:border-stone-600 bg-white dark:bg-stone-900 hover:border-orange-400 dark:hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-stone-800";
+    const containerClassName = `${baseClasses} ${disabled ? disabledClasses : enabledClasses}`;
+
+    const textBaseClasses = "text-center mt-2 transition-colors duration-200";
+    const textDisabledClasses = "text-orange-300 dark:text-stone-500";
+    const textEnabledClasses = "text-orange-500 dark:text-orange-400";
+    const textClassName = `${textBaseClasses} ${disabled ? textDisabledClasses : textEnabledClasses}`;
+
     return (
-        <fieldset
-            className={`relative w-full border-2 border-dashed rounded-lg p-4 transition-colors duration-200 ${
-                disabled
-                    ? "border-orange-200 dark:border-stone-600 bg-orange-50 dark:bg-stone-800 cursor-not-allowed"
-                    : "border-orange-300 dark:border-stone-600 bg-white dark:bg-stone-900 cursor-pointer hover:border-orange-400 dark:hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-stone-800"
-            }`}
+        <section
+            data-testid="file-drop-zone-container"
+            aria-label="File Drop Zone Container"
+            className={containerClassName}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
         >
@@ -73,13 +82,11 @@ export function FileDropZone({ onFileDrop, children, disabled = false }: FileDro
                 tabIndex={-1}
             />
             <div className="relative z-20">{children}</div>
-            <div
-                className={`text-center mt-2 transition-colors duration-200 ${disabled ? "text-orange-300 dark:text-stone-500" : "text-orange-500 dark:text-orange-400"}`}
-            >
+            <div className={textClassName}>
                 {disabled
                     ? "File uploads disabled while connecting..."
                     : "📁 Tap to select files or drag & drop to sync instantly"}
             </div>
-        </fieldset>
+        </section>
     );
 }
