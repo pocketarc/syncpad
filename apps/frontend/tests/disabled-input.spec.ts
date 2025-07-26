@@ -23,7 +23,7 @@ test.describe("Disabled Input Functionality (with network interception)", () => 
         });
 
         // Do the initial page load.
-        await page.goto(`/room?id=${ROOM_ID}`);
+        await page.goto(`/room#${ROOM_ID}`);
         const statusBar = page.locator('[data-testid="status-bar"]');
 
         const textarea = page.locator("textarea");
@@ -56,7 +56,7 @@ test.describe("Disabled Input Functionality (with network interception)", () => 
     });
 
     test("inputs are properly enabled when connected from the start", async ({ page }) => {
-        await page.goto(`/room?id=${ROOM_ID}-normal`);
+        await page.goto(`/room#${ROOM_ID}-normal`);
 
         // Wait for successful connection.
         await expect(page.locator('[data-testid="status-bar"]')).toHaveText("● Live sync active", {

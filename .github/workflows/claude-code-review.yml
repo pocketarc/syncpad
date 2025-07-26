@@ -6,8 +6,6 @@ on:
 
 jobs:
   claude-review:
-    if: github.event.pull_request.author_association == 'CONTRIBUTOR'
-    
     runs-on: ubuntu-latest
     permissions:
       contents: read

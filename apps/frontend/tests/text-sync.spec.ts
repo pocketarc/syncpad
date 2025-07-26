@@ -1,30 +1,9 @@
 import { expect, test } from "@playwright/test";
+import { setupMultiClientTest } from "./helpers/room";
 
 test.describe("Text Synchronization", () => {
-    // Remove the shared beforeEach since we need unique room IDs per test
-
-    test("should sync basic text between two clients", async ({ browser, browserName }, testInfo) => {
-        const context1 = await browser.newContext();
-        const context2 = await browser.newContext();
-
-        const page1 = await context1.newPage();
-        const page2 = await context2.newPage();
-
-        // Create unique room ID for this test execution
-        const timestamp = Date.now().toString(36);
-        const roomId = `test-${browserName}-${testInfo.workerIndex}-${timestamp}`;
-
-        await Promise.all([page1.goto(`/room?id=${roomId}`), page2.goto(`/room?id=${roomId}`)]);
-
-        // Wait for both pages to be connected
-        await Promise.all([
-            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
-            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
-        ]);
-
-        // Clear any existing content from both clients
-        await page1.locator("textarea").fill("");
-        await page2.locator("textarea").fill("");
+    test("should sync basic text between two clients", async ({ context }) => {
+        const [page1, page2] = await setupMultiClientTest(context, 2);
 
         // Type text in client 1
         const textarea1 = page1.locator("textarea");
@@ -32,48 +11,17 @@ test.describe("Text Synchronization", () => {
 
         // Wait for it to sync to client 2
         const textarea2 = page2.locator("textarea");
-        await page2.waitForFunction(() => document.querySelector("textarea")?.value === "Hello from client 1!");
+        await expect(textarea2).toHaveValue("Hello from client 1!");
 
         // Type text in client 2
         await textarea2.fill("Reply from client 2!");
 
         // Wait for it to sync back to client 1
-        await page1.waitForFunction(() => document.querySelector("textarea")?.value === "Reply from client 2!");
-
-        await context1.close();
-        await context2.close();
+        await expect(textarea1).toHaveValue("Reply from client 2!");
     });
 
-    test("should sync text across multiple clients", async ({ browser, browserName }, testInfo) => {
-        const context1 = await browser.newContext();
-        const context2 = await browser.newContext();
-        const context3 = await browser.newContext();
-
-        const page1 = await context1.newPage();
-        const page2 = await context2.newPage();
-        const page3 = await context3.newPage();
-
-        // Create unique room ID for this test execution
-        const timestamp = Date.now().toString(36);
-        const roomId = `test-${browserName}-${testInfo.workerIndex}-${timestamp}`;
-
-        await Promise.all([
-            page1.goto(`/room?id=${roomId}`),
-            page2.goto(`/room?id=${roomId}`),
-            page3.goto(`/room?id=${roomId}`),
-        ]);
-
-        // Wait for all connections
-        await Promise.all([
-            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
-            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
-            expect(page3.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
-        ]);
-
-        // Clear any existing content from all clients
-        await page1.locator("textarea").fill("");
-        await page2.locator("textarea").fill("");
-        await page3.locator("textarea").fill("");
+    test("should sync text across multiple clients", async ({ context }) => {
+        const [page1, page2, page3] = await setupMultiClientTest(context, 3);
 
         // Type in client 1
         const textarea1 = page1.locator("textarea");
@@ -99,68 +47,37 @@ test.describe("Text Synchronization", () => {
         // Verify it appears in clients 1 and 2
         await expect(textarea1).toHaveValue("Final message from client 3");
         await expect(textarea2).toHaveValue("Final message from client 3");
-
-        await context1.close();
-        await context2.close();
-        await context3.close();
     });
 
-    test("should handle text replacement correctly", async ({ browser, browserName }, testInfo) => {
-        const context1 = await browser.newContext();
-        const context2 = await browser.newContext();
-
-        const page1 = await context1.newPage();
-        const page2 = await context2.newPage();
-
-        // Create unique room ID for this test execution
-        const timestamp = Date.now().toString(36);
-        const roomId = `test-${browserName}-${testInfo.workerIndex}-${timestamp}`;
-
-        await Promise.all([page1.goto(`/room?id=${roomId}`), page2.goto(`/room?id=${roomId}`)]);
-
-        await Promise.all([
-            expect(page1.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
-            expect(page2.locator('[data-testid="status-bar"]')).toContainText("Live sync active"),
-        ]);
+    test("should handle text replacement correctly", async ({ context }) => {
+        const [page1, page2] = await setupMultiClientTest(context, 2);
 
         const textarea1 = page1.locator("textarea");
         const textarea2 = page2.locator("textarea");
 
-        // Clear any existing content from both clients
-        await page1.locator("textarea").fill("");
-        await page2.locator("textarea").fill("");
-
         // Start with some initial text
         await textarea1.fill("Initial text content");
-        await page2.waitForFunction(() => document.querySelector("textarea")?.value === "Initial text content");
+        await expect(textarea2).toHaveValue("Initial text content");
 
         // Replace with completely different text
         await textarea1.fill("Completely replaced content");
-        await page2.waitForFunction(() => document.querySelector("textarea")?.value === "Completely replaced content");
+        await expect(textarea2).toHaveValue("Completely replaced content");
 
         // Replace with shorter text
         await textarea2.fill("Short");
-        await page1.waitForFunction(() => document.querySelector("textarea")?.value === "Short");
+        await expect(textarea1).toHaveValue("Short");
 
         // Replace with longer text
-        await textarea1.fill(
-            "This is a much longer piece of text that should completely replace the previous short text",
-        );
-        await page2.waitForFunction(
-            () =>
-                document.querySelector("textarea")?.value ===
-                "This is a much longer piece of text that should completely replace the previous short text",
-        );
+        const longText = "This is a much longer piece of text that should completely replace the previous short text";
+        await textarea1.fill(longText);
+        await expect(textarea2).toHaveValue(longText);
 
         // Replace with empty text
         await textarea2.fill("");
-        await page1.waitForFunction(() => document.querySelector("textarea")?.value === "");
+        await expect(textarea1).toHaveValue("");
 
         // Add text back after empty
         await textarea1.fill("Back to text after empty");
-        await page2.waitForFunction(() => document.querySelector("textarea")?.value === "Back to text after empty");
-
-        await context1.close();
-        await context2.close();
+        await expect(textarea2).toHaveValue("Back to text after empty");
     });
 });

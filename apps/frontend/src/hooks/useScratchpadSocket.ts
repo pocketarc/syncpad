@@ -1,4 +1,4 @@
-import type { WebSocketMessage } from "@syncpad/shared";
+import type { Message, MessageWithoutId } from "@syncpad/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type ConnectionStatus = "Connecting" | "Connected" | "Disconnected" | "Error" | "Reconnecting";
@@ -11,7 +11,7 @@ const MAX_RECONNECT_ATTEMPTS = Number.POSITIVE_INFINITY; // Reconnect infinitely
 
 export function useScratchpadSocket(url: string | null) {
     const [status, setStatus] = useState<ConnectionStatus>("Connecting");
-    const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
+    const [lastMessage, setLastMessage] = useState<Message | null>(null);
     const ws = useRef<WebSocket | null>(null);
     const pingInterval = useRef<NodeJS.Timeout | null>(null);
     const pongTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -19,6 +19,7 @@ export function useScratchpadSocket(url: string | null) {
     const reconnectAttempts = useRef(0);
     const shouldReconnect = useRef(true);
     const sentMessageIds = useRef<Set<string>>(new Set());
+    const receivedMessageIds = useRef<Set<string>>(new Set());
 
     const clearTimers = useCallback(() => {
         if (pingInterval.current) {
@@ -35,23 +36,26 @@ export function useScratchpadSocket(url: string | null) {
         }
     }, []);
 
-    const sendMessage = useCallback((message: WebSocketMessage) => {
+    const sendMessage = useCallback((message: MessageWithoutId) => {
         if (ws.current?.readyState === WebSocket.OPEN) {
             // Generate a unique message ID and track it.
-            const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            const messageId = crypto.randomUUID();
             const messageWithId = {
                 ...message,
                 messageId,
             };
 
-            // Track this message ID so we can ignore it when it comes back.
-            sentMessageIds.current.add(messageId);
+            if (!["ping", "pong"].includes(messageWithId.type)) {
+                // Track this message ID so we can ignore it when it comes back.
+                // We don't track ping/pong messages since they are not sent by the user.
+                sentMessageIds.current.add(messageId);
 
-            // Clean up old message IDs to prevent memory leaks.
-            if (sentMessageIds.current.size > 100) {
-                const ids = Array.from(sentMessageIds.current);
-                sentMessageIds.current.clear();
-                ids.slice(-50).forEach((id) => sentMessageIds.current.add(id));
+                // Clean up old message IDs to prevent memory leaks.
+                if (sentMessageIds.current.size > 100) {
+                    const ids = Array.from(sentMessageIds.current);
+                    sentMessageIds.current.clear();
+                    ids.slice(-50).forEach((id) => sentMessageIds.current.add(id));
+                }
             }
 
             ws.current.send(JSON.stringify(messageWithId));
@@ -62,7 +66,7 @@ export function useScratchpadSocket(url: string | null) {
 
     const sendPing = useCallback(() => {
         if (ws.current?.readyState === WebSocket.OPEN) {
-            ws.current.send(JSON.stringify({ type: "ping", payload: null }));
+            sendMessage({ type: "ping", payload: null });
 
             // Set timeout to wait for pong
             pongTimeout.current = setTimeout(() => {
@@ -70,7 +74,7 @@ export function useScratchpadSocket(url: string | null) {
                 ws.current?.close();
             }, PONG_TIMEOUT);
         }
-    }, []);
+    }, [sendMessage]);
 
     const startPingInterval = useCallback(() => {
         clearTimers();
@@ -121,7 +125,7 @@ export function useScratchpadSocket(url: string | null) {
 
         socket.onmessage = (event) => {
             try {
-                const message: WebSocketMessage = JSON.parse(event.data);
+                const message: Message = JSON.parse(event.data);
 
                 // Handle pong response
                 if (message.type === "pong") {
@@ -134,16 +138,32 @@ export function useScratchpadSocket(url: string | null) {
 
                 // Handle ping (respond with pong)
                 if (message.type === "ping") {
-                    if (socket.readyState === WebSocket.OPEN) {
-                        socket.send(JSON.stringify({ type: "pong", payload: null }));
-                    }
+                    sendMessage({ type: "pong", payload: null });
                     return;
                 }
 
-                // Handle other message types - ignore messages we sent ourselves.
+                // Ignore messages we sent ourselves.
                 if (message.messageId && sentMessageIds.current.has(message.messageId)) {
-                    // This is a message we sent, ignore it.
                     return;
+                }
+
+                // **Replay Attack Prevention**
+                // If we have seen this message ID before, discard it.
+                if (message.messageId && receivedMessageIds.current.has(message.messageId)) {
+                    console.warn("Replay attack detected. Discarding message:", message.messageId);
+                    return;
+                }
+
+                // Track the new message ID.
+                if (message.messageId) {
+                    receivedMessageIds.current.add(message.messageId);
+
+                    // Clean up old received message IDs to prevent memory leaks.
+                    if (receivedMessageIds.current.size > 100) {
+                        const ids = Array.from(receivedMessageIds.current);
+                        receivedMessageIds.current.clear();
+                        ids.slice(-50).forEach((id) => receivedMessageIds.current.add(id));
+                    }
                 }
 
                 setLastMessage(message);
@@ -151,7 +171,7 @@ export function useScratchpadSocket(url: string | null) {
                 console.error("Failed to parse incoming message:", error);
             }
         };
-    }, [url, startPingInterval, clearTimers]);
+    }, [url, startPingInterval, sendMessage, clearTimers]);
 
     useEffect(() => {
         shouldReconnect.current = true;

@@ -16,9 +16,10 @@
     },
     "dependencies": {
         "@syncpad/shared": "*",
+        "next": "15.3.4",
+        "niceware": "^4.0.0",
         "react": "^19.1.0",
-        "react-dom": "^19.1.0",
-        "next": "15.3.4"
+        "react-dom": "^19.1.0"
     },
     "devDependencies": {
         "eslint": "^9.31.0",

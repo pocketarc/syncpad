@@ -5,12 +5,12 @@ test.describe("Room Functionality", () => {
         await page.goto("/");
 
         // Wait for redirect to complete
-        await page.waitForURL(/room\?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page.waitForURL(/room#([a-z]+-){3}[a-z]+$/);
 
         // Verify we're on a room page with proper format
         const url = new URL(page.url());
-        const roomId = url.searchParams.get("id");
-        expect(roomId).toMatch(/^[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        const roomId = url.hash.substring(1);
+        expect(roomId).toMatch(/^([a-z]+-){3}[a-z]+$/);
 
         // Verify room ID is displayed in the UI
         await expect(page.locator("text=Room:")).toBeVisible();
@@ -19,7 +19,7 @@ test.describe("Room Functionality", () => {
 
     test("should show share room button", async ({ page }) => {
         await page.goto("/");
-        await page.waitForURL(/room\?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page.waitForURL(/room#([a-z]+-){3}[a-z]+$/);
 
         // Verify share room button exists
         await expect(page.locator("button", { hasText: "📋 Share Room" })).toBeVisible();
@@ -37,11 +37,11 @@ test.describe("Room Functionality", () => {
         await page2.goto("/");
 
         // Wait for redirects and get room IDs
-        await page1.waitForURL(/room\?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
-        await page2.waitForURL(/room\?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page1.waitForURL(/room#([a-z]+-){3}[a-z]+$/);
+        await page2.waitForURL(/room#([a-z]+-){3}[a-z]+$/);
 
-        const room1Id = new URL(page1.url()).searchParams.get("id");
-        const room2Id = new URL(page2.url()).searchParams.get("id");
+        const room1Id = new URL(page1.url()).hash.substring(1);
+        const room2Id = new URL(page2.url()).hash.substring(1);
 
         // Ensure rooms are different
         expect(room1Id).not.toBe(room2Id);
@@ -73,7 +73,7 @@ test.describe("Room Functionality", () => {
 
         // Go to the same room on both pages
         await page1.goto("/");
-        await page1.waitForURL(/room\?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page1.waitForURL(/room#([a-z]+-){3}[a-z]+$/);
 
         const roomUrl = page1.url();
         await page2.goto(roomUrl);
@@ -107,7 +107,7 @@ test.describe("Room Functionality", () => {
 
         // Go to the same room on both pages
         await page1.goto("/");
-        await page1.waitForURL(/room\?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page1.waitForURL(/room#([a-z]+-){3}[a-z]+$/);
 
         const roomUrl = page1.url();
         await page2.goto(roomUrl);
@@ -134,17 +134,17 @@ test.describe("Room Functionality", () => {
         await context.close();
     });
 
-    test("should handle invalid room IDs", async ({ page }) => {
-        // Try to navigate to an invalid room ID
-        await page.goto("/room?id=invalid-room-id");
+    test("should handle missing room secret", async ({ page }) => {
+        // Try to navigate to a room URL without a secret fragment
+        await page.goto("/room");
 
         // Should redirect back to home and then to a new valid room
-        await page.waitForURL(/\/room\?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page.waitForURL(/room#([a-z]+-){3}[a-z]+$/);
 
         // Verify we end up in a valid room
         const url = new URL(page.url());
-        const roomId = url.searchParams.get("id");
-        expect(roomId).toMatch(/^[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        const roomId = url.hash.substring(1);
+        expect(roomId).toMatch(/^([a-z]+-){3}[a-z]+$/);
     });
 
     test("should copy room URL to clipboard when share button is clicked", async ({ page, context, browserName }) => {
@@ -157,18 +157,14 @@ test.describe("Room Functionality", () => {
         await context.grantPermissions(["clipboard-read", "clipboard-write"]);
 
         await page.goto("/");
-        await page.waitForURL(/room\?id=[a-z]+-[a-z]+-[a-z]+-[a-z]+$/);
+        await page.waitForURL(/room#([a-z]+-){3}[a-z]+$/);
 
         const roomUrl = page.url();
 
         // Click the share button
         await page.click("button:has-text('📋 Share Room')");
 
-        // Wait a moment for clipboard operation
-        await page.waitForTimeout(100);
-
-        // Verify clipboard contains the room URL
-        const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
-        expect(clipboardText).toBe(roomUrl);
+        // Verify the clipboard contains the room URL by polling.
+        await expect.poll(async () => page.evaluate(() => navigator.clipboard.readText())).toBe(roomUrl);
     });
 });

@@ -6,7 +6,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 test.describe("Mobile File Upload", () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto("/room?id=test-blue-cat-moon");
+        await page.goto("/room#test-blue-cat-moon");
         // Wait for WebSocket connection
         await expect(page.locator('[data-testid="status-bar"]')).toContainText("Live sync active");
     });
@@ -23,9 +23,6 @@ test.describe("Mobile File Upload", () => {
         // Set the file on the hidden input
         const fileInput = page.locator('input[type="file"]');
         await fileInput.setInputFiles(filePath);
-
-        // Wait for file to be processed
-        await page.waitForTimeout(1000);
 
         // Verify the file upload was successful
         expect(await fileInput.inputValue()).toBe("");
@@ -67,8 +64,6 @@ test.describe("Mobile File Upload", () => {
 
         const fileInput = page.locator('input[type="file"]');
         await fileInput.setInputFiles(filePath);
-
-        await page.waitForTimeout(1000);
 
         // Verify file input was reset
         expect(await fileInput.inputValue()).toBe("");

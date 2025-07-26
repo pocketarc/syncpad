@@ -1,7 +1,7 @@
 "use client";
 
-import type { TextMessage } from "@syncpad/shared";
-import { useSearchParams } from "next/navigation";
+import type { ClientFileMessage, ClientMessage, ClientTextMessage, Message } from "@syncpad/shared";
+import { useRouter } from "next/navigation";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { FileDropZone } from "@/components/FileDropZone";
@@ -9,15 +9,30 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ScratchpadInput } from "@/components/ScratchpadInput";
 import { StatusBar } from "@/components/StatusBar";
+import { useCrypto } from "@/hooks/useCrypto";
 import { useHostname } from "@/hooks/useHostname";
 import { useScratchpadSocket } from "@/hooks/useScratchpadSocket";
 import { downloadFile } from "@/lib/downloadFile";
-import { isValidRoomId } from "@syncpad/shared/src/isValidRoomId.ts";
+
+/**
+ * Calculates a public room ID from a secret using SHA-256.
+ * This is a one-way process, so the secret cannot be derived from the public ID.
+ * @param secret The secret string from the URL fragment.
+ * @returns A promise that resolves to a hex-encoded SHA-256 hash.
+ */
+async function getPublicId(secret: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(secret);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 // biome-ignore lint/style/noDefaultExport: Next.js requires a default export for pages.
 export default function RoomPage() {
-    const searchParams = useSearchParams();
-    const roomId = searchParams.get("id");
+    const router = useRouter();
+    const [secret, setSecret] = useState<string | null>(null);
+    const [publicId, setPublicId] = useState<string | null>(null);
 
     const port = Number.parseInt(process.env["NEXT_PUBLIC_WEBSOCKET_PORT"] ?? "8080");
     const hostname = useHostname();
@@ -26,36 +41,82 @@ export default function RoomPage() {
 
     const [text, setText] = useState("");
     const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
+    const [error, setError] = useState<string | null>(null);
 
-    // Construct WebSocket URL with room ID path
-    const wsUrl = hostname && roomId && isValidRoomId(roomId) ? `${websocketUrl}/${roomId}` : null;
-
-    const { status, lastMessage, sendMessage } = useScratchpadSocket(wsUrl);
-    const isConnected = status === "Connected";
-
-    // Redirect to home if room ID is invalid
+    // On component mount, extract the secret from the URL fragment.
     useEffect(() => {
-        if (roomId && !isValidRoomId(roomId)) {
-            window.location.href = "/";
+        if (typeof window !== "undefined") {
+            const hash = window.location.hash;
+            if (hash) {
+                const currentSecret = hash.substring(1);
+                setSecret(currentSecret);
+                getPublicId(currentSecret).then(setPublicId);
+            } else {
+                // If there's no secret, we can't proceed. Redirect home.
+                router.push("/");
+            }
         }
-    }, [roomId]);
+    }, [router]);
+
+    const { isReady: isCryptoReady, encrypt, decrypt } = useCrypto(secret);
+
+    // Construct WebSocket URL with the derived public ID
+    const wsUrl = hostname && publicId ? `${websocketUrl}/${publicId}` : null;
+
+    const { status, lastMessage, sendMessage: sendRawMessage } = useScratchpadSocket(wsUrl);
+    const isConnected = status === "Connected" && isCryptoReady;
+
+    // Wrapper for sendMessage to encrypt the payload before sending.
+    const sendMessage = useCallback(
+        async (message: ClientMessage) => {
+            if (!isCryptoReady) {
+                return;
+            }
+
+            try {
+                const encryptedPayload = await encrypt(JSON.stringify(message.payload));
+                const encryptedMessage: Message = {
+                    type: message.type,
+                    payload: encryptedPayload,
+                    messageId: crypto.randomUUID(),
+                };
+                sendRawMessage(encryptedMessage);
+            } catch (error) {
+                console.error("Failed to encrypt and send message:", error);
+            }
+        },
+        [isCryptoReady, encrypt, sendRawMessage],
+    );
 
     // Effect to handle incoming messages from the WebSocket.
     useEffect(() => {
-        if (lastMessage) {
-            if (lastMessage.type === "text") {
-                setText(lastMessage.payload);
-            } else if (lastMessage.type === "file") {
-                downloadFile(lastMessage.payload);
-            }
+        if (lastMessage && isCryptoReady) {
+            // The entire payload is now an encrypted string. We must decrypt it first.
+            decrypt(lastMessage.payload as string)
+                .then((decryptedPayload) => {
+                    setError(null); // Clear any previous error
+                    const payload = JSON.parse(decryptedPayload);
+                    if (lastMessage.type === "text") {
+                        setText(payload);
+                    } else if (lastMessage.type === "file") {
+                        downloadFile(payload);
+                    }
+                })
+                .catch(() => {
+                    // Do not log the specific error to the console.
+                    // Set a user-facing error state instead.
+                    setError(
+                        "Could not decrypt an incoming message. The sender may be using a different room secret.",
+                    );
+                });
         }
-    }, [lastMessage]); // This effect runs only when a new message arrives.
+    }, [lastMessage, isCryptoReady, decrypt]);
 
     const handleTextChange = useCallback(
         (e: React.ChangeEvent<HTMLTextAreaElement>) => {
             const newText = e.target.value;
             setText(newText);
-            const message: TextMessage = { type: "text", payload: newText };
+            const message: ClientTextMessage = { type: "text", payload: newText };
             sendMessage(message);
         },
         [sendMessage],
@@ -67,14 +128,15 @@ export default function RoomPage() {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     if (e.target?.result) {
-                        sendMessage({
+                        const message: ClientFileMessage = {
                             type: "file",
                             payload: {
                                 name: file.name,
                                 type: file.type,
                                 data: e.target.result as string,
                             },
-                        });
+                        };
+                        sendMessage(message);
                     }
                 };
                 reader.readAsDataURL(file);
@@ -84,9 +146,10 @@ export default function RoomPage() {
     );
 
     const handleCopyRoomUrl = useCallback(async () => {
-        if (typeof window !== "undefined" && roomId) {
+        if (typeof window !== "undefined" && secret) {
             try {
-                const roomUrl = `${window.location.origin}/room?id=${roomId}`;
+                // The URL to share is the one with the secret in the fragment.
+                const roomUrl = `${window.location.origin}/room#${secret}`;
                 await navigator.clipboard.writeText(roomUrl);
                 setCopyStatus("copied");
                 setTimeout(() => setCopyStatus("idle"), 2000);
@@ -95,7 +158,7 @@ export default function RoomPage() {
                 setTimeout(() => setCopyStatus("idle"), 2000);
             }
         }
-    }, [roomId]);
+    }, [secret]);
 
     const button = (
         <button
@@ -115,14 +178,14 @@ export default function RoomPage() {
             <main className="flex flex-col items-center p-4 flex-1">
                 <div className="w-full max-w-4xl">
                     <Header buttons={button}>
-                        {roomId && (
+                        {secret && (
                             <p className="text-sm text-orange-600 dark:text-orange-400">
-                                Room: <strong data-testid="roomid">{roomId}</strong>
+                                Room: <strong data-testid="roomid">{secret}</strong>
                             </p>
                         )}
                     </Header>
 
-                    <StatusBar status={status} />
+                    <StatusBar status={status} error={error} />
 
                     <FileDropZone onFileDrop={handleFileDrop} disabled={!isConnected}>
                         <ScratchpadInput value={text} onChange={handleTextChange} disabled={!isConnected} />
