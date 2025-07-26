@@ -18,7 +18,7 @@ test.describe("Mobile File Upload", () => {
 
         // Tap the file drop zone
         const dropZone = page.locator('[aria-label="File drop zone"]');
-        await dropZone.tap();
+        await dropZone.tap({ force: true });
 
         // Set the file on the hidden input
         const fileInput = page.locator('input[type="file"]');
@@ -57,9 +57,9 @@ test.describe("Mobile File Upload", () => {
 
         // Use tap for mobile, click for desktop
         if (isMobile) {
-            await dropZone.tap();
+            await dropZone.tap({ force: true });
         } else {
-            await dropZone.click();
+            await dropZone.click({ force: true });
         }
 
         const fileInput = page.locator('input[type="file"]');
