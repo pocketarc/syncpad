@@ -108,9 +108,7 @@ export default function RoomPage() {
                     }
                 })
                 .catch(() => {
-                    setError(
-                        "Could not decrypt an incoming message. The sender may be using a different room secret.",
-                    );
+                    setError("Could not decrypt an incoming message. The sender may be using a different room secret.");
                 });
         }
     }, [lastMessage, isCryptoReady, decrypt]);
