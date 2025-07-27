@@ -4,7 +4,7 @@
 
 ### 1.1. Purpose
 
-SyncPad is a zero-friction, browser-based scratchpad for instant text and file synchronization across devices. It solves the common problem of needing to quickly transfer small pieces of information (code snippets, URLs, temporary files) between machines (e.g., a work laptop and a personal laptop) without the overhead of dedicated apps, cloud storage, or messaging yourself.
+SyncPad is a zero-friction, browser-based scratchpad for instant text and file synchronization across devices. It supports real-time, multi-user collaborative editing, solving the common problem of needing to quickly share and edit information (code snippets, notes, URLs) and transfer temporary files between machines without the overhead of dedicated apps, cloud storage, or messaging yourself.
 
 Each SyncPad session is isolated in its own **room** with a unique, shareable URL. When you visit the root URL, you're automatically redirected to a new room with a memorable ID (e.g., `brave-coral-eagle-castle`). You can share this room URL with others to collaborate in real-time.
 
@@ -13,7 +13,7 @@ Each SyncPad session is isolated in its own **room** with a unique, shareable UR
 The project is built on three core principles:
 
 1.  **Simplicity:** The user experience should be immediate and intuitive. No accounts, no configuration, no installs. Open a tab and it just works.
-2.  **Performance:** The synchronization should feel instantaneous. We use a lightweight, high-performance stack (Bun, WebSockets) to minimize latency.
+2.  **Performance:** The synchronization should feel instantaneous. We use a lightweight, high-performance stack (Bun, WebSockets, Yjs) to minimize latency.
 3.  **Privacy:** Data is ephemeral and **end-to-end encrypted**. It is streamed directly between connected clients via the server and is **never stored at rest**. The server acts as a simple, zero-knowledge message broker that cannot read the content of the messages being exchanged.
 
 ## 2. System Architecture
@@ -43,6 +43,7 @@ SyncPad employs a simple client-server architecture composed of two primary serv
 -   **Runtime & Package Manager:** **Bun** is used across the entire monorepo.
 -   **Backend:** **Bun's native WebSocket API**, which is built on uWebSockets for high performance.
 -   **Frontend:** **Next.js 15** (with Turbopack) and **React 19**.
+-   **Collaborative Editing:** **Yjs** for high-performance, conflict-free text synchronization using CRDTs.
 -   **Styling:** **Tailwind CSS 4**.
 -   **Web Server:** **Nginx** serves the frontend in containerized environments.
 -   **Monorepo Management:** **Turbo** for orchestrating build, development, and linting tasks.
@@ -78,11 +79,13 @@ This contains the Next.js client application.
     -   `useCrypto.ts`: **The core of the E2EE implementation.** This hook derives a key from the room secret (URL fragment), and exposes `encrypt` and `decrypt` functions using the Web Crypto API.
     -   `useHostname.ts`: A client-side hook to safely get the `window.location.hostname` for constructing the WebSocket URL. This is critical for making the app work on any network without hardcoding `localhost`.
     -   `useScratchpadSocket.ts`: **The most important frontend hook.** It manages the entire WebSocket lifecycle: connection, event listeners (`onopen`, `onmessage`, etc.), state management (`status`, `lastMessage`), and provides a `sendMessage` function.
+    -   `useYjs.ts`: **The core of the collaborative editing implementation.** This hook encapsulates all Yjs-related logic, including `Y.Doc` management, state synchronization via awareness and update messages, and cursor position handling.
     -   `useDarkMode.ts`: Manages the dark mode state and persists the user's preference in `localStorage`.
 -   `src/lib/`: Shared utilities and type definitions.
     -   `downloadFile.ts`: A utility function that takes a file payload and triggers a browser download, which is the mechanism for receiving files.
     -   `roomId.ts`: A utility for generating high-entropy, memorable room IDs using the `niceware` library. This is the source of the client-side secret.
 -   `tests/`: Contains all Playwright end-to-end tests.
+    -   `crdt-sync.spec.ts`: Validates real-time collaborative text editing and ensures new clients correctly sync the full document state.
     -   `text-sync.spec.ts`: Validates real-time text synchronization between multiple clients.
     -   `file-upload.spec.ts`: Tests file upload functionality via both click/select and drag-and-drop.
     -   `multi-client-sync.spec.ts`: The most critical test suite, ensuring that actions in one client (text or file updates) are correctly reflected in other connected clients.
@@ -121,40 +124,56 @@ SyncPad's privacy model is built on strong, client-side, end-to-end encryption. 
 
 ### 5.2. WebSocket Message Protocol
 
-All communication between the client and server uses a simple JSON-based message protocol defined in `packages/shared/src/types.ts`. The key feature is that the `payload` for `text` and `file` messages is always an **encrypted Base64 string**.
+All communication between the client and server uses a simple JSON-based message protocol defined in `packages/shared/src/types.ts`. The key feature is that the `payload` for all message types is always an **encrypted Base64 string**.
 
 -   **Over-the-wire Message:**
     ```json
     {
-      "type": "text", // or "file"
+      "type": "crdt", // or "file", "sync-request", etc.
       "payload": "BASE64_ENCRYPTED_STRING_WITH_IV...",
       "messageId": "client-generated-unique-id"
     }
     ```
--   The server sees only this structure. It cannot inspect the original content of the payload.
+-   The server sees only this structure. It cannot inspect the original content of the payload. The `type` field helps route different kinds of messages if needed in the future, but for now, all are broadcast to the room.
 
-### 5.3. Data Flow: Text Sync (with E2EE)
+### 5.3. Data Flow: Collaborative Text Sync (CRDT)
 
-1.  **User Action:** A user types in the `<ScratchpadInput>`.
-2.  **React Event & Callback:** The `onChange` event fires `handleTextChange` in `room/page.tsx`.
-3.  **Local State Update:** The callback first calls `setText(newText)` to update the UI of the *current* client instantly for a responsive feel.
-4.  **Create Client Message:** It creates a `ClientTextMessage` object with the plaintext payload.
-5.  **Encrypt and Send:** The `sendMessage` wrapper function in `room/page.tsx` does the following:
-    a.  Takes the `ClientTextMessage` object.
-    b.  `JSON.stringify`s the plaintext payload.
-    c.  Calls the `encrypt` function from the `useCrypto` hook to encrypt the stringified payload.
-    d.  Creates a final `Message` object with the `type` and the now-encrypted `payload`.
-    e.  Calls the `sendRawMessage` function from the `useScratchpadSocket` hook.
-6.  **Server Broadcast:** The backend receives the encrypted message and publishes it to the room-specific topic (identified by the hashed public ID).
-7.  **Remote Client Reception:** All *other* clients in the same room receive the encrypted message via their `socket.onmessage` handler.
-8.  **Decrypt and Update:** The `useEffect` in `room/page.tsx` on the other clients is triggered. It does the following:
-    a.  Calls the `decrypt` function from the `useCrypto` hook on the `message.payload`.
-    b.  `JSON.parse`s the resulting decrypted string to get the original plaintext.
-    c.  Calls `setText(plaintext)`, updating their UI to match.
+Text synchronization is handled using a robust, conflict-free implementation with the Yjs CRDT library, which allows for true real-time collaborative editing. The end-to-end encryption model is fully preserved; all Yjs updates are encrypted before being sent over the network.
+
+1.  **Initialization:**
+    a.  Each client in a room initializes a Yjs document (`Y.Doc`) and a shared text type (`Y.Text`). This is managed by the `useYjs` hook.
+    b.  When a client connects, it sends a `sync-request` message containing its current document state vector. This allows other clients to know what information the new client is missing.
+
+2.  **User Action:** A user types in the `<ScratchpadInput>`.
+
+3.  **Local CRDT Update:**
+    a.  The `onChange` event is handled by `useYjs`.
+    b.  Instead of updating React state directly, the change is applied to the local `Y.Doc`. Yjs calculates a highly efficient, incremental update that describes the change (e.g., "insert 'a' at position 4").
+
+4.  **Encrypt and Broadcast Update:**
+    a.  The `Y.Doc` emits an `update` event containing the incremental change as a `Uint8Array`.
+    b.  This binary update is encoded into a Base64 string.
+    c.  This string becomes the payload for a `crdt` message.
+    d.  The `sendMessage` wrapper encrypts the payload using the shared room key.
+    e.  The encrypted message is sent to the WebSocket server and broadcast to all other clients in the room.
+
+5.  **Remote Client Reception:**
+    a.  Other clients receive the encrypted `crdt` message.
+    b.  The `onmessage` handler decrypts the payload to get the Base64-encoded Yjs update.
+    c.  The Base64 string is decoded back into a `Uint8Array`.
+    d.  The update is applied to the remote client's `Y.Doc` using `Y.applyUpdate`. Yjs automatically merges the change, guaranteeing eventual consistency across all clients without conflicts.
+
+6.  **UI Update:**
+    a.  The `Y.Text` object in each client emits a `change` event.
+    b.  An observer function updates the React state (`text`), which re-renders the `<ScratchpadInput>` with the new, merged content.
+
+7.  **New Client Sync:**
+    a.  When a new client joins, it sends a `sync-request` with its empty state vector.
+    b.  Existing clients receive this and respond with a `sync-response` containing the updates needed to bring the new client up to date. This ensures new participants get the full document history.
 
 ### 5.4. Data Flow: File Sync (with E2EE)
 
-The file sync flow is identical to the text sync flow, with the only difference being the structure of the unencrypted payload.
+The file sync flow is separate from the CRDT text sync but follows a similar encryption and broadcast pattern.
 
 1.  **User Action:** A user drops a file.
 2.  **File Reading:** The `onFileDrop` event reads the file into a Base64 data URL.
@@ -248,4 +267,3 @@ To consider a task complete, ensure the following:
 | `WEBSOCKET_PORT`             | `backend`  | The port on which the Bun WebSocket server will listen.                                                                           | `8080`              |
 | `NEXT_PUBLIC_WEBSOCKET_PORT` | `frontend` | The port the client should connect to when running in a local, non-Docker environment. Must match the backend's `WEBSOCKET_PORT`. | `8080`              |
 | `NEXT_PUBLIC_WEBSOCKET_URI`  | `frontend` | The full WebSocket URI the client should connect to. This is used in the CI environment to connect to the `backend` service.      | `ws://backend:8080` |
-

@@ -96,6 +96,10 @@ const server = Bun.serve<SocketData, Record<never, unknown>>({
 
                 // Broadcast the raw message to all other clients in the same room.
                 ws.publish(roomTopic, message);
+
+                if (process.env["NODE_ENV"] !== "production") {
+                    console.log(`Broadcasting message to room ${roomId}.`);
+                }
             } catch (e) {
                 // Not a JSON message or invalid JSON format.
                 console.error("Failed to parse message:", e);

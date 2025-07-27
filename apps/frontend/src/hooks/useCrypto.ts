@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { decrypt, deriveKey, encrypt } from "@/lib/crypto";
 
 /**
@@ -34,19 +34,29 @@ export function useCrypto(secret: string | null) {
         }
     }, [memoizedDeriveKey]);
 
-    return {
-        isReady: !!key,
-        encrypt: (plaintext: string) => {
+    const encryptCallback = useCallback(
+        (plaintext: string) => {
             if (!key) {
                 throw new Error("Crypto key is not available.");
             }
             return encrypt(key, plaintext);
         },
-        decrypt: (ciphertext: string) => {
+        [key],
+    );
+
+    const decryptCallback = useCallback(
+        (ciphertext: string) => {
             if (!key) {
                 throw new Error("Crypto key is not available.");
             }
             return decrypt(key, ciphertext);
         },
+        [key],
+    );
+
+    return {
+        isReady: !!key,
+        encrypt: encryptCallback,
+        decrypt: decryptCallback,
     };
 }
