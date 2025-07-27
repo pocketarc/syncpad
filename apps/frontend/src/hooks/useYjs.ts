@@ -53,14 +53,12 @@ export function useYjs({ sendMessage, lastMessage, isConnected, decrypt }: UseYj
 
         const handleBlur = () => {
             if (textarea) {
-                console.log(`[Yjs] Textarea blurred. Saving cursor position: ${textarea.selectionStart}`);
                 savedCursorPos.current = textarea.selectionStart;
             }
         };
 
         const handleFocus = () => {
             if (textarea && savedCursorPos.current !== null) {
-                console.log(`[Yjs] Textarea focused. Restoring cursor to ${savedCursorPos.current}`);
                 textarea.setSelectionRange(savedCursorPos.current, savedCursorPos.current);
                 savedCursorPos.current = null; // Clear after restoring
             }

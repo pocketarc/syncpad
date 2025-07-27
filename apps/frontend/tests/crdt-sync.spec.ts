@@ -88,7 +88,7 @@ test.describe("CRDT Text Synchronization", () => {
 
         // Client 2 adds to the text
         const secondText = " And this is from the second user.";
-        await textarea2.type(secondText);
+        await textarea2.pressSequentially(secondText, { delay: 50 });
         const combinedText1 = initialText + secondText;
         await expect(textarea2).toHaveValue(combinedText1);
         await expect(textarea1).toHaveValue(combinedText1);
@@ -102,7 +102,7 @@ test.describe("CRDT Text Synchronization", () => {
 
         // Client 3 adds to the text
         const thirdText = " Finally, the third user adds on.";
-        await textarea3.type(thirdText);
+        await textarea3.pressSequentially(thirdText, { delay: 50 });
         const combinedText2 = combinedText1 + thirdText;
         await expect(textarea3).toHaveValue(combinedText2);
         await expect(textarea2).toHaveValue(combinedText2);

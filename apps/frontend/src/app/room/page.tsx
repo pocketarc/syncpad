@@ -118,7 +118,7 @@ export default function RoomPage() {
         (files: File[]) => {
             for (const file of files) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
+                reader.onload = async (e) => {
                     if (e.target?.result) {
                         const message: ClientFileMessage = {
                             type: "file",
@@ -128,7 +128,7 @@ export default function RoomPage() {
                                 data: e.target.result as string,
                             },
                         };
-                        sendMessage(message);
+                        await sendMessage(message);
                     }
                 };
                 reader.readAsDataURL(file);
