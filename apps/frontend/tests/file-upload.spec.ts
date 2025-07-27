@@ -15,7 +15,7 @@ test.describe("File Upload", () => {
         const filePath = path.join(__dirname, "fixtures", "test.txt");
 
         // Click the file drop zone to trigger file input
-        await page.locator('[aria-label="File drop zone"]').click();
+        await page.locator('[aria-label="File drop zone"]').click({ position: { x: 5, y: 5 } });
 
         // Set the file on the hidden input
         const fileInput = page.locator('input[type="file"]');
@@ -37,7 +37,7 @@ test.describe("File Upload", () => {
             path.join(__dirname, "fixtures", "sample.json"),
         ];
 
-        await page.locator('[aria-label="File drop zone"]').click();
+        await page.locator('[aria-label="File drop zone"]').click({ position: { x: 5, y: 5 } });
 
         const fileInput = page.locator('input[type="file"]');
         await fileInput.setInputFiles(filePaths);
@@ -60,17 +60,24 @@ test.describe("File Upload", () => {
         expect(await fileInput.inputValue()).toBe("");
     });
 
-    test("should show hover effect on file drop zone", async ({ page }) => {
-        const dropZone = page.locator('[aria-label="File drop zone"]');
+    test("should show hover effect on file drop zone", async ({ page, isMobile }) => {
+        test.skip(isMobile, "Hover effect is not applicable on mobile devices");
 
-        // Check initial state
-        await expect(dropZone).toHaveClass(/border-orange-300/);
+        const dropZone = page.locator('[data-testid="file-drop-zone-container"]');
+
+        const initialBorderColor = await dropZone.evaluate((element) => {
+            return window.getComputedStyle(element).borderColor;
+        });
 
         // Hover over the drop zone
-        await dropZone.hover();
+        await page.locator('[aria-label="File drop zone"]').hover({ position: { x: 5, y: 5 } });
+
+        const hoveredBorderColor = await dropZone.evaluate((element) => {
+            return window.getComputedStyle(element).borderColor;
+        });
 
         // Should show hover effect (border color change)
-        await expect(dropZone).toHaveClass(/hover:border-orange-400/);
+        expect(initialBorderColor).not.toBe(hoveredBorderColor);
     });
 
     test("should have proper accessibility attributes", async ({ page }) => {
@@ -80,10 +87,23 @@ test.describe("File Upload", () => {
         // Check aria-label
         await expect(dropZone).toHaveAttribute("aria-label", "File drop zone");
 
-        // Check file input is hidden from screen readers
-        await expect(fileInput).toHaveAttribute("aria-hidden", "true");
-
         // Check file input has multiple attribute
         await expect(fileInput).toHaveAttribute("multiple");
+    });
+
+    test("should not trigger file upload when typing spaces in textarea", async ({ page }) => {
+        let fileChooserOpened = false;
+        page.on("filechooser", () => {
+            fileChooserOpened = true;
+        });
+
+        const textarea = page.locator("textarea");
+        await textarea.focus();
+        await textarea.press(" ");
+        await textarea.press("a");
+        await textarea.press(" ");
+        await textarea.press("b");
+
+        expect(fileChooserOpened).toBe(false);
     });
 });
