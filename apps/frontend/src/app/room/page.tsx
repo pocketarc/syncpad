@@ -2,7 +2,7 @@
 
 import type { ClientFileMessage, ClientMessage, Message } from "@syncpad/shared";
 import { useRouter } from "next/navigation";
-import type React from "react";
+
 import { useCallback, useEffect, useState } from "react";
 import { FileDropZone } from "@/components/FileDropZone";
 import { Footer } from "@/components/Footer";
@@ -74,7 +74,8 @@ export default function RoomPage() {
             }
 
             try {
-                const payloadString = typeof message.payload === "string" ? message.payload : JSON.stringify(message.payload);
+                const payloadString =
+                    typeof message.payload === "string" ? message.payload : JSON.stringify(message.payload);
                 const encryptedPayload = await encrypt(payloadString);
                 const encryptedMessage: Message = {
                     type: message.type,
@@ -89,7 +90,7 @@ export default function RoomPage() {
         [isCryptoReady, encrypt, sendRawMessage],
     );
 
-    const { text, handleLocalTextChange } = useYjs({
+    const { text, handleTextChange, textareaRef } = useYjs({
         sendMessage,
         lastMessage,
         isConnected,
@@ -112,13 +113,6 @@ export default function RoomPage() {
                 });
         }
     }, [lastMessage, isCryptoReady, decrypt]);
-
-    const handleTextChange = useCallback(
-        (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-            handleLocalTextChange(e.target.value);
-        },
-        [handleLocalTextChange],
-    );
 
     const handleFileDrop = useCallback(
         (files: File[]) => {
@@ -185,7 +179,12 @@ export default function RoomPage() {
                     <StatusBar status={status} error={error} />
 
                     <FileDropZone onFileDrop={handleFileDrop} disabled={!isConnected}>
-                        <ScratchpadInput value={text} onChange={handleTextChange} disabled={!isConnected} />
+                        <ScratchpadInput
+                            ref={textareaRef}
+                            value={text}
+                            onChange={handleTextChange}
+                            disabled={!isConnected}
+                        />
                     </FileDropZone>
                 </div>
             </main>

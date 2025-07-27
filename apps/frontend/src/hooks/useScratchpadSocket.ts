@@ -1,4 +1,4 @@
-import type { Message, MessageWithoutId } from "@syncpad/shared";
+import type { Message } from "@syncpad/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type ConnectionStatus = "Connecting" | "Connected" | "Disconnected" | "Error" | "Reconnecting";

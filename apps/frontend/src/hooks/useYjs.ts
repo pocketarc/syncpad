@@ -1,23 +1,26 @@
-import type { ClientCrdtMessage, ClientMessage, ClientSyncRequestMessage, ClientSyncResponseMessage, Message } from "@syncpad/shared";
-import { useCallback, useEffect, useState } from "react";
+import type {
+    ClientCrdtMessage,
+    ClientMessage,
+    ClientSyncRequestMessage,
+    ClientSyncResponseMessage,
+    Message,
+} from "@syncpad/shared";
+import type { ChangeEvent } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as Y from "yjs";
 
 // Helper to convert Uint8Array to Base64
 function uint8ArrayToBase64(array: Uint8Array): string {
-    let binary = "";
-    for (let i = 0; i < array.length; i++) {
-        binary += String.fromCharCode(array[i]);
-    }
-    return window.btoa(binary);
+    return window.btoa(array.reduce((data, byte) => data + String.fromCharCode(byte), ""));
 }
 
 // Helper to convert Base64 to Uint8Array
 function base64ToUint8Array(base64: string): Uint8Array {
-    const binary_string = window.atob(base64);
-    const len = binary_string.length;
+    const binaryString = window.atob(base64);
+    const len = binaryString.length;
     const bytes = new Uint8Array(len);
     for (let i = 0; i < len; i++) {
-        bytes[i] = binary_string.charCodeAt(i);
+        bytes[i] = binaryString.charCodeAt(i);
     }
     return bytes;
 }
@@ -33,6 +36,44 @@ export function useYjs({ sendMessage, lastMessage, isConnected, decrypt }: UseYj
     const [yDoc] = useState(() => new Y.Doc());
     const [yText] = useState(() => yDoc.getText("scratchpad"));
     const [text, setText] = useState("");
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const [isSynced, setIsSynced] = useState(false);
+    const savedCursorPos = useRef<number | null>(null);
+
+    // Reset sync status on disconnection
+    useEffect(() => {
+        if (!isConnected) {
+            setIsSynced(false);
+        }
+    }, [isConnected]);
+
+    // Save and restore cursor position on focus/blur
+    useEffect(() => {
+        const textarea = textareaRef.current;
+
+        const handleBlur = () => {
+            if (textarea) {
+                console.log(`[Yjs] Textarea blurred. Saving cursor position: ${textarea.selectionStart}`);
+                savedCursorPos.current = textarea.selectionStart;
+            }
+        };
+
+        const handleFocus = () => {
+            if (textarea && savedCursorPos.current !== null) {
+                console.log(`[Yjs] Textarea focused. Restoring cursor to ${savedCursorPos.current}`);
+                textarea.setSelectionRange(savedCursorPos.current, savedCursorPos.current);
+                savedCursorPos.current = null; // Clear after restoring
+            }
+        };
+
+        textarea?.addEventListener("blur", handleBlur);
+        textarea?.addEventListener("focus", handleFocus);
+
+        return () => {
+            textarea?.removeEventListener("blur", handleBlur);
+            textarea?.removeEventListener("focus", handleFocus);
+        };
+    }, []);
 
     // Set up Yjs observers for local and remote changes
     useEffect(() => {
@@ -64,8 +105,8 @@ export function useYjs({ sendMessage, lastMessage, isConnected, decrypt }: UseYj
         if (lastMessage) {
             decrypt(lastMessage.payload as string).then((decryptedPayload) => {
                 if (lastMessage.type === "crdt") {
-                    const update = base64ToUint8Array(decryptedPayload);
-                    Y.applyUpdate(yDoc, update, "remote");
+                    Y.applyUpdate(yDoc, base64ToUint8Array(decryptedPayload), "remote");
+                    setIsSynced(true);
                 } else if (lastMessage.type === "sync-request") {
                     const remoteStateVector = base64ToUint8Array(decryptedPayload);
                     const update = Y.encodeStateAsUpdate(yDoc, remoteStateVector);
@@ -75,16 +116,16 @@ export function useYjs({ sendMessage, lastMessage, isConnected, decrypt }: UseYj
                     };
                     sendMessage(message);
                 } else if (lastMessage.type === "sync-response") {
-                    const update = base64ToUint8Array(decryptedPayload);
-                    Y.applyUpdate(yDoc, update, "remote");
+                    Y.applyUpdate(yDoc, base64ToUint8Array(decryptedPayload), "remote");
+                    setIsSynced(true);
                 }
             });
         }
     }, [lastMessage, decrypt, yDoc, sendMessage]);
 
-    // Send a sync request when the connection is established.
+    // Send a sync request when the connection is established but not yet synced.
     useEffect(() => {
-        if (isConnected) {
+        if (isConnected && !isSynced) {
             const stateVector = Y.encodeStateVector(yDoc);
             const message: ClientSyncRequestMessage = {
                 type: "sync-request",
@@ -92,10 +133,11 @@ export function useYjs({ sendMessage, lastMessage, isConnected, decrypt }: UseYj
             };
             sendMessage(message);
         }
-    }, [isConnected, yDoc, sendMessage]);
+    }, [isConnected, isSynced, yDoc, sendMessage]);
 
-    const handleLocalTextChange = useCallback(
-        (newText: string) => {
+    const handleTextChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement>) => {
+            const newText = e.target.value;
             const oldText = yText.toString();
             yDoc.transact(() => {
                 const minLen = Math.min(oldText.length, newText.length);
@@ -117,10 +159,10 @@ export function useYjs({ sendMessage, lastMessage, isConnected, decrypt }: UseYj
                 if (newEnd > start) {
                     yText.insert(start, newText.slice(start, newEnd));
                 }
-            });
+            }, "local");
         },
         [yDoc, yText],
     );
 
-    return { text, handleLocalTextChange };
+    return { text, handleTextChange, textareaRef };
 }
