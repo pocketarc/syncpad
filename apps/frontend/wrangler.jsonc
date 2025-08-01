@@ -4,5 +4,11 @@
     "assets": {
         "directory": "./out",
         "not_found_handling": "single-page-application"
-    }
+    },
+    "routes": [
+        {
+            "pattern": "syncpad.app",
+            "custom_domain": true
+        }
+    ]
 }
