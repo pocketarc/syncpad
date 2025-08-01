@@ -8,7 +8,7 @@ const SALT_PREFIX = "syncpad-salt-"; // A constant prefix to ensure the derived 
  * @param secret The room's secret passphrase.
  * @returns A promise that resolves to a Uint8Array salt.
  */
-async function getSalt(secret: string): Promise<Uint8Array> {
+async function getSalt(secret: string): Promise<Uint8Array<ArrayBuffer>> {
     const encoder = new TextEncoder();
     const data = encoder.encode(`${SALT_PREFIX}${secret}`);
     const hashBuffer = await window.crypto.subtle.digest("SHA-256", data);
