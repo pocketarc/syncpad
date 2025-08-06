@@ -1,21 +1,21 @@
-import type React from "react";
+import type { ChangeEvent } from "react";
+import { forwardRef } from "react";
 
 interface ScratchpadInputProps {
     value: string;
-    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+    onChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
     disabled?: boolean;
 }
 
-export function ScratchpadInput({ value, onChange, disabled = false }: ScratchpadInputProps) {
-    const handleClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
-        e.stopPropagation();
-    };
-
+export const ScratchpadInput = forwardRef<HTMLTextAreaElement, ScratchpadInputProps>(function ScratchpadInput(
+    { value, onChange, disabled = false },
+    ref,
+) {
     return (
         <textarea
+            ref={ref}
             value={value}
             onChange={onChange}
-            onClick={handleClick}
             disabled={disabled}
             className={`w-full h-80 p-4 border rounded-lg focus:outline-none focus:ring-2 font-mono transition-colors duration-200 ${
                 disabled
@@ -25,4 +25,4 @@ export function ScratchpadInput({ value, onChange, disabled = false }: Scratchpa
             placeholder={disabled ? "Connecting to server..." : "Type here. It appears there. Magic."}
         />
     );
-}
+});

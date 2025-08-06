@@ -3,13 +3,15 @@
 // For ping/pong, the payload is not used.
 import { z } from "zod";
 
+export type MessageType = "text" | "file" | "ping" | "pong" | "crdt" | "sync-request" | "sync-response";
+
 export interface MessageWithoutId {
-    type: "text" | "file" | "ping" | "pong";
+    type: MessageType;
     payload: string | null;
 }
 
 export interface Message {
-    type: "text" | "file" | "ping" | "pong";
+    type: MessageType;
     payload: string | null;
     messageId: string;
 }
@@ -24,6 +26,12 @@ export interface FilePayload {
 // The unencrypted payload for a text message is simply a string.
 export type TextPayload = string;
 
+// The unencrypted payload for a CRDT message is a Base64-encoded string.
+export type CrdtPayload = string;
+
+// The unencrypted payload for sync messages is a Base64-encoded string.
+export type SyncPayload = string;
+
 // --- Client-side convenience types (before encryption) ---
 
 export interface ClientTextMessage {
@@ -36,10 +44,30 @@ export interface ClientFileMessage {
     payload: FilePayload;
 }
 
-export type ClientMessage = ClientTextMessage | ClientFileMessage;
+export interface ClientCrdtMessage {
+    type: "crdt";
+    payload: CrdtPayload;
+}
+
+export interface ClientSyncRequestMessage {
+    type: "sync-request";
+    payload: SyncPayload;
+}
+
+export interface ClientSyncResponseMessage {
+    type: "sync-response";
+    payload: SyncPayload;
+}
+
+export type ClientMessage =
+    | ClientTextMessage
+    | ClientFileMessage
+    | ClientCrdtMessage
+    | ClientSyncRequestMessage
+    | ClientSyncResponseMessage;
 
 export const MessageSchema = z.object({
-    type: z.enum(["text", "file", "ping", "pong"]),
+    type: z.enum(["text", "file", "ping", "pong", "crdt", "sync-request", "sync-response"]),
     payload: z.string().nullable(),
     messageId: z.string(),
 });

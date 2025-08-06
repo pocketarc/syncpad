@@ -22,12 +22,14 @@ Because god damn, not everything needs to be monetized.
 
 ## ✨ Features
 
+- Real-time collaborative editing for text.
+- End-to-end encrypted file and text sharing.
+- Private, shareable rooms with memorable URLs.
 - Zero setup, with no login or configuration required.
-- Memorable room URLs like `/room?id=brave-coral-eagle-castle` that you can share with others.
 - Real-time synchronization of text and files across all connected devices in the same room.
 - Complete room isolation - each session is private and separate from others.
 - Drag and drop support for file sharing.
-- Privacy-focused: Your data is not stored on any server, it stays between your devices.
+- Your data is never stored on any server - everything is handled in-browser.
 
 ## 🚀 Quick Start
 
