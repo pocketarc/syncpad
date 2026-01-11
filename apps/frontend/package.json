@@ -16,22 +16,22 @@
     },
     "dependencies": {
         "@syncpad/shared": "*",
-        "next": "15.3.4",
+        "next": "^15.5.7",
         "niceware": "^4.0.0",
-        "react": "^19.1.0",
-        "react-dom": "^19.1.0"
+        "react": "^19.2.1",
+        "react-dom": "^19.2.1"
     },
     "devDependencies": {
-        "eslint": "^9.31.0",
-        "eslint-config-next": "^15.4.3",
-        "playwright-core": "^1.54.1",
-        "@playwright/test": "^1.54.1",
-        "@tailwindcss/postcss": "^4.1.11",
-        "@tailwindcss/typography": "^0.5.16",
-        "@types/node": "^24.1.0",
-        "@types/react": "^19.1.8",
-        "@types/react-dom": "^19.1.6",
-        "tailwindcss": "^4.1.11",
-        "typescript": "^5.8.3"
+        "eslint": "^9.39.1",
+        "eslint-config-next": "^15.5.7",
+        "playwright-core": "^1.57.0",
+        "@playwright/test": "^1.57.0",
+        "@tailwindcss/postcss": "^4.1.17",
+        "@tailwindcss/typography": "^0.5.19",
+        "@types/node": "^24.10.2",
+        "@types/react": "^19.2.7",
+        "@types/react-dom": "^19.2.3",
+        "tailwindcss": "^4.1.17",
+        "typescript": "^5.9.3"
     }
 }

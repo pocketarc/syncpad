@@ -6,6 +6,9 @@ COPY packages/shared/package.json ./packages/shared/
 COPY apps/backend/package.json ./apps/backend/
 COPY apps/frontend/package.json ./apps/frontend/
 
+ARG WEBSOCKET_PORT=8080
+ENV WEBSOCKET_PORT=$WEBSOCKET_PORT
+
 RUN bun install --production --no-cache --no-save --frozen-lockfile
 
 # Copy the backend source code.

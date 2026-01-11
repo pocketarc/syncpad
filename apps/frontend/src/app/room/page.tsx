@@ -12,21 +12,8 @@ import { StatusBar } from "@/components/StatusBar";
 import { useCrypto } from "@/hooks/useCrypto";
 import { useHostname } from "@/hooks/useHostname";
 import { useScratchpadSocket } from "@/hooks/useScratchpadSocket";
+import { generateId, getPublicId, isE2EE } from "@/lib/crypto.ts";
 import { downloadFile } from "@/lib/downloadFile";
-
-/**
- * Calculates a public room ID from a secret using SHA-256.
- * This is a one-way process, so the secret cannot be derived from the public ID.
- * @param secret The secret string from the URL fragment.
- * @returns A promise that resolves to a hex-encoded SHA-256 hash.
- */
-async function getPublicId(secret: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(secret);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
 
 // biome-ignore lint/style/noDefaultExport: Next.js requires a default export for pages.
 export default function RoomPage() {
@@ -36,7 +23,12 @@ export default function RoomPage() {
 
     const port = Number.parseInt(process.env["NEXT_PUBLIC_WEBSOCKET_PORT"] ?? "8080");
     const hostname = useHostname();
-    const defaultWebSocketUrl = `ws://${hostname}:${port}`;
+
+    // On OrbStack domains, route to the API subdomain; otherwise use hostname:port.
+    const defaultWebSocketUrl = hostname.endsWith(".orb.local")
+        ? "ws://api.syncpad.orb.local"
+        : `ws://${hostname}:${port}`;
+
     const websocketUrl = process.env["NEXT_PUBLIC_WEBSOCKET_URI"] ?? defaultWebSocketUrl;
 
     const [text, setText] = useState("");
@@ -78,7 +70,7 @@ export default function RoomPage() {
                 const encryptedMessage: Message = {
                     type: message.type,
                     payload: encryptedPayload,
-                    messageId: crypto.randomUUID(),
+                    messageId: generateId(),
                 };
                 sendRawMessage(encryptedMessage);
             } catch (error) {
@@ -172,7 +164,7 @@ export default function RoomPage() {
     );
 
     return (
-        <div className="flex min-h-screen flex-col bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-stone-900 dark:to-stone-800 transition-colors duration-200">
+        <div className="flex min-h-screen flex-col">
             <main className="flex flex-col items-center p-4 flex-1">
                 <div className="w-full max-w-4xl">
                     <Header buttons={button}>
@@ -183,7 +175,7 @@ export default function RoomPage() {
                         )}
                     </Header>
 
-                    <StatusBar status={status} error={error} />
+                    <StatusBar status={status} error={error} isEncrypted={isE2EE()} />
 
                     <FileDropZone onFileDrop={handleFileDrop} disabled={!isConnected}>
                         <ScratchpadInput value={text} onChange={handleTextChange} disabled={!isConnected} />

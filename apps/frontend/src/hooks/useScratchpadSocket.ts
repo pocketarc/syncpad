@@ -1,5 +1,6 @@
 import type { Message, MessageWithoutId } from "@syncpad/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { generateId } from "@/lib/crypto";
 
 type ConnectionStatus = "Connecting" | "Connected" | "Disconnected" | "Error" | "Reconnecting";
 
@@ -39,7 +40,7 @@ export function useScratchpadSocket(url: string | null) {
     const sendMessage = useCallback((message: MessageWithoutId) => {
         if (ws.current?.readyState === WebSocket.OPEN) {
             // Generate a unique message ID and track it.
-            const messageId = crypto.randomUUID();
+            const messageId = generateId();
             const messageWithId = {
                 ...message,
                 messageId,

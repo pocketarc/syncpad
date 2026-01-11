@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import type React from "react";
+import { isE2EE } from "@/lib/crypto.ts";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -14,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "SyncPad - Instant cross-device sync",
+    title: isE2EE() ? "SyncPad - Instant cross-device sync" : "localhost",
     description: "Zero-friction, browser-based scratchpad for instant text and file synchronization across devices.",
 };
 
@@ -26,7 +27,9 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" className="transition-colors duration-200">
-            <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
+            <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-orange-50 dark:bg-stone-900`}>
+                {children}
+            </body>
         </html>
     );
 }
