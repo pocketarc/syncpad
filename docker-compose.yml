@@ -1,21 +1,47 @@
 services:
-    backend:
-        build:
-            context: .
-            dockerfile: ./apps/backend/Dockerfile
-        ports:
-            - "${HOST_BACKEND_PORT:-8080}:8080"
-        restart: unless-stopped
+  backend:
+    image: oven/bun:latest
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "bun install && bun --watch run apps/backend/src/index.ts"
+    environment:
+      - WEBSOCKET_PORT=8080
+    ports:
+      - "8080:8080"
+    labels:
+      - dev.orbstack.domains=api.syncpad.orb.local
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/8080"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
-    frontend:
-        build:
-            context: .
-            dockerfile: ./apps/frontend/Dockerfile
-        ports:
-            - "${HOST_FRONTEND_PORT:-80}:80"
-        environment:
-            # The frontend code needs to know which host port to connect to for the WebSocket. We pass the HOST port variable here.
-            - NEXT_PUBLIC_WEBSOCKET_PORT=${HOST_BACKEND_PORT:-8080}
-        depends_on:
-            - backend
-        restart: unless-stopped
+  frontend:
+    image: oven/bun:latest
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: bun run --cwd apps/frontend dev
+    environment:
+      - NEXT_TELEMETRY_DISABLED=1
+      - NEXT_PUBLIC_WEBSOCKET_PORT=8080
+    ports:
+      - "3050:3050"
+    depends_on:
+      backend:
+        condition: service_healthy
+    labels:
+      - dev.orbstack.domains=syncpad.orb.local
+
+  devtools:
+    image: oven/bun:latest
+    working_dir: /app
+    volumes:
+      - .:/app
+    init: true
+    stop_grace_period: 1s
+    tty: true
+    stdin_open: true
+    command: /bin/bash

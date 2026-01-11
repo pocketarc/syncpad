@@ -18,7 +18,7 @@ export default function HomePage() {
     }, [router]);
 
     return (
-        <div className="flex min-h-screen flex-col bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-stone-900 dark:to-stone-800 transition-colors duration-200">
+        <div className="flex min-h-screen flex-col">
             <main className="flex flex-col items-center p-4 flex-1">
                 <div className="w-full flex flex-col flex-1 max-w-4xl">
                     <Header>

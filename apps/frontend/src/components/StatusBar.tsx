@@ -1,15 +1,19 @@
 interface StatusBarProps {
     status: string;
     error?: string | null;
+    isEncrypted?: boolean;
 }
 
-export function StatusBar({ status, error }: StatusBarProps) {
+export function StatusBar({ status, error, isEncrypted }: StatusBarProps) {
     const getStatusColor = () => {
         if (error) {
             return "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700";
         }
         switch (status) {
             case "Connected":
+                if (isEncrypted === false) {
+                    return "text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700";
+                }
                 return "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700";
             case "Connecting":
             case "Reconnecting":
@@ -27,6 +31,12 @@ export function StatusBar({ status, error }: StatusBarProps) {
         }
         switch (status) {
             case "Connected":
+                if (isEncrypted === false) {
+                    return "⚠️";
+                }
+                if (isEncrypted === true) {
+                    return "🔒";
+                }
                 return "●";
             case "Connecting":
             case "Reconnecting":
@@ -44,6 +54,12 @@ export function StatusBar({ status, error }: StatusBarProps) {
         }
         switch (status) {
             case "Connected":
+                if (isEncrypted === false) {
+                    return "Live sync active - UNENCRYPTED";
+                }
+                if (isEncrypted === true) {
+                    return "Live sync active (encrypted)";
+                }
                 return "Live sync active";
             case "Connecting":
                 return "Connecting...";
